@@ -317,31 +317,69 @@
             font-size: 0.8rem;
         }
 
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
+        /* Consistent input group styling */
+.input-group {
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+}
 
-        .input-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--accent);
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-        }
+.input-group label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+    font-size: 0.9rem;
+}
 
-        .input-group label i {
-            margin-right: 8px;
-            width: 20px;
-            text-align: center;
-        }
+.input-group label i {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
 
-        .angle-input-wrapper {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
+.input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 
+.input-wrapper input {
+    flex: 1;
+    background: rgba(10, 25, 47, 0.6);
+    border: 1px solid rgba(100, 255, 218, 0.2);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    height: 44px;
+}
+
+.input-wrapper input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
+    background: rgba(10, 25, 47, 0.8);
+    outline: none;
+}
+
+.set-btn {
+    background: rgba(100, 255, 218, 0.2);
+    color: var(--accent);
+    border: none;
+    padding: 0 20px;
+    height: 44px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.set-btn:hover {
+    background: rgba(100, 255, 218, 0.3);
+}
         #sensor-angle {
             flex: 1;
             background: rgba(10, 25, 47, 0.6);
@@ -586,27 +624,44 @@
                     </div>
                 </div>
                 
-                <div class="card" style="margin-bottom: 1.5rem;">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-cog"></i>
-                            Sensor Configuration
-                        </h2>
-                    </div>
-                    <div class="input-group">
-                        <label for="sensor-angle">
-                            <i class="fas fa-chevron-right"></i>
-                            Angle Between Sensors (θ):
-                        </label>
-                        <div class="angle-input-wrapper">
-                            <input type="number" id="sensor-angle" min="0" max="180" step="1" 
-                                   placeholder="Enter angle (degrees)">
-                            <button class="angle-set-btn" onclick="FlowSense.saveSensorAngle()">
-                                <i class="fas fa-check"></i> Set
-                            </button>
-                        </div>
-                    </div>
-                </div>
+              <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-cog"></i>
+            Sensor Configuration
+        </h2>
+    </div>
+    
+    <!-- Sensor Angle Input -->
+    <div class="input-group">
+        <label for="sensor-angle">
+            <i class="fas fa-chevron-right"></i>
+            Angle Between Sensors (θ):
+        </label>
+        <div class="input-wrapper">
+            <input type="number" id="sensor-angle" min="0" max="180" step="1" 
+                   value="45" placeholder="Enter angle (degrees)">
+            <button class="set-btn" onclick="FlowSense.saveSensorAngle()">
+                <i class="fas fa-check"></i> Set
+            </button>
+        </div>
+    </div>
+    
+    <!-- Pipe Diameter Input -->
+    <div class="input-group">
+        <label for="pipe-diameter">
+            <i class="fas fa-ruler-horizontal"></i>
+            Pipe Diameter (m):
+        </label>
+        <div class="input-wrapper">
+            <input type="number" id="pipe-diameter" min="0.01" max="1" step="0.01" 
+                   value="0.1" placeholder="0.01-1.0">
+            <button class="set-btn" onclick="FlowSense.savePipeDiameter()">
+                <i class="fas fa-check"></i> Set
+            </button>
+        </div>
+    </div>
+</div>
                 
                 <div class="card">
                     <div class="card-header">
@@ -892,6 +947,7 @@ const FlowSense = (function() {
         receivedFreqDisplay: document.getElementById('received-freq'),
         timeOfFlightDisplay: document.getElementById('time-of-flight'),
         sensorAngleInput: document.getElementById('sensor-angle'),
+	pipeDiameterInput: document.getElementById('pipe-diameter'),
         deviceSelect: document.getElementById('device-select')
     };
 
@@ -1135,17 +1191,42 @@ const FlowSense = (function() {
         initDateTimePickers();
     }
 
+ 
     // Load saved settings
-    function loadSavedSettings() {
-        const savedAngle = localStorage.getItem('sensorAngle');
-        if (savedAngle) {
-            elements.sensorAngleInput.value = savedAngle;
-        } else {
-            elements.sensorAngleInput.value = config.defaults.sensorAngle;
-        }
+function loadSavedSettings() {
+    const savedAngle = localStorage.getItem('sensorAngle');
+    if (savedAngle) {
+        elements.sensorAngleInput.value = savedAngle;
+    } else {
+        elements.sensorAngleInput.value = config.defaults.sensorAngle;
     }
+    
+    // Add this for pipe diameter
+    const savedDiameter = localStorage.getItem('pipeDiameter');
+    if (savedDiameter) {
+        elements.pipeDiameterInput.value = savedDiameter;
+    } else {
+        elements.pipeDiameterInput.value = config.defaults.pipeDiameter;
+    }
+}
 
-    // Handle device selection change
+// Save pipe diameter to localStorage
+function savePipeDiameter() {
+    const diameter = elements.pipeDiameterInput.value;
+    localStorage.setItem('pipeDiameter', diameter);
+    
+    // Show confirmation
+    const btn = document.querySelectorAll('.angle-set-btn')[1]; // Get the second button
+    btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+    btn.style.background = 'rgba(46, 204, 113, 0.2)';
+    btn.style.color = 'var(--success)';
+    
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i> Set';
+        btn.style.background = 'rgba(100, 255, 218, 0.2)';
+        btn.style.color = 'var(--accent)';
+    }, 2000);
+}
     // Handle device selection change
 function handleDeviceChange() {
     const device = elements.deviceSelect.value;
@@ -1272,6 +1353,9 @@ function connectMQTT() {
 
     // Convert angle to radians
     const angleRad = (elements.sensorAngleInput.value || config.defaults.sensorAngle) * Math.PI / 180;
+    
+    // Get pipe diameter from input or use default
+    const pipeDiameter = elements.pipeDiameterInput.value || config.defaults.pipeDiameter;
 
     // Calculate flow rate using Doppler equation (convert kHz to Hz temporarily)
     const deltaF_Hz = (receivedFreq - transmittedFreq) * 1000;
@@ -1279,14 +1363,14 @@ function connectMQTT() {
     const flowVelocity = (deltaF_Hz * config.defaults.speedOfSound) / (2 * transmittedFreq_Hz * Math.cos(angleRad));
 
     // Convert velocity to flow rate (m/s to L/min)
-    const pipeArea = Math.PI * Math.pow(config.defaults.pipeDiameter / 2, 2);
+    const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);  // Use the user's pipe diameter
     const flowRate = flowVelocity * pipeArea * 60000; // m³/s to L/min
 
     // Store/display values
     state.data.timestamps.push(timestamp);
     state.data.flowRates.push(flowRate);
-    state.data.transmittedFreqs.push(transmittedFreq);  // Still in kHz
-    state.data.receivedFreqs.push(receivedFreq);        // Still in kHz
+    state.data.transmittedFreqs.push(transmittedFreq);
+    state.data.receivedFreqs.push(receivedFreq);
     state.data.timeOfFlights.push(timeOfFlight);
 
     // Limit to last 100 data points
@@ -1315,7 +1399,7 @@ function connectMQTT() {
             elements.timeOfFlightDisplay.innerHTML = 
                 state.data.timeOfFlights[lastIndex].toFixed(1) + '<span class="frequency-unit">μs</span>';
         }
-    }
+    
 
     // Update charts with current data
     function updateCharts() {
@@ -1602,13 +1686,14 @@ calendarEl.querySelector('.next-month').addEventListener('click', function (e) {
     }
 
     // Public API
-    return {
-        init: init,
-        saveSensorAngle: saveSensorAngle,
-        downloadFrequencyReport: downloadFrequencyReport,
-        downloadFlowRateReport: downloadFlowRateReport,
-        downloadCombinedReport: downloadCombinedReport
-    };
+return {
+    init: init,
+    saveSensorAngle: saveSensorAngle,
+    savePipeDiameter: savePipeDiameter,  // Add this line
+    downloadFrequencyReport: downloadFrequencyReport,
+    downloadFlowRateReport: downloadFlowRateReport,
+    downloadCombinedReport: downloadCombinedReport
+};
 })();
 
 document.addEventListener("DOMContentLoaded", function () {

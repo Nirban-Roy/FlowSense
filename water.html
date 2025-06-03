@@ -1263,41 +1263,48 @@ function connectMQTT() {
         }
     }
 
-    // Process flow data from MQTT
-    function processFlowData(data, timestamp) {
-        // Extract frequencies (convert from Hz to kHz for display)
-        const transmittedFreq = data.transmitted_freq / 1000; // Hz to kHz
-        const receivedFreq = data.received_freq / 1000; // Hz to kHz
-        const timeOfFlight = data.time_of_flight; // μs
-        
-        // Calculate flow rate using Doppler equation
-        const angleRad = (elements.sensorAngleInput.value || config.defaults.sensorAngle) * Math.PI / 180;
-        const deltaF = receivedFreq - transmittedFreq;
-        const flowVelocity = (deltaF * config.defaults.speedOfSound) / (2 * transmittedFreq * Math.cos(angleRad));
-        
-        // Convert velocity to flow rate (m/s to L/min)
-        const pipeArea = Math.PI * Math.pow(config.defaults.pipeDiameter / 2, 2);
-        const flowRate = flowVelocity * pipeArea * 60000; // m³/s to L/min
-        
-        // Add to data arrays (keep only last 100 points)
-        state.data.timestamps.push(timestamp);
-        state.data.flowRates.push(flowRate);
-        state.data.transmittedFreqs.push(transmittedFreq);
-        state.data.receivedFreqs.push(receivedFreq);
-        state.data.timeOfFlights.push(timeOfFlight);
-        
-        if (state.data.timestamps.length > 100) {
-            state.data.timestamps.shift();
-            state.data.flowRates.shift();
-            state.data.transmittedFreqs.shift();
-            state.data.receivedFreqs.shift();
-            state.data.timeOfFlights.shift();
+    // Process flow data from Mr);
         }
     }
 
+    // Process flow data from MQTT
+    function processFlowData(data, timestamp) {
+    // Extract frequencies in kHz for display and consistency
+    const transmittedFreq = data.transmitted_freq / 1000; // Hz to kHz
+    const receivedFreq = data.received_freq / 1000;       // Hz to kHz
+    const timeOfFlight = data.time_of_flight;             // μs
+
+    // Convert angle to radians
+    const angleRad = (elements.sensorAngleInput.value || config.defaults.sensorAngle) * Math.PI / 180;
+
+    // Calculate flow rate using Doppler equation (convert kHz to Hz temporarily)
+    const deltaF_Hz = (receivedFreq - transmittedFreq) * 1000;
+    const transmittedFreq_Hz = transmittedFreq * 1000;
+    const flowVelocity = (deltaF_Hz * config.defaults.speedOfSound) / (2 * transmittedFreq_Hz * Math.cos(angleRad));
+
+    // Convert velocity to flow rate (m/s to L/min)
+    const pipeArea = Math.PI * Math.pow(config.defaults.pipeDiameter / 2, 2);
+    const flowRate = flowVelocity * pipeArea * 60000; // m³/s to L/min
+
+    // Store/display values
+    state.data.timestamps.push(timestamp);
+    state.data.flowRates.push(flowRate);
+    state.data.transmittedFreqs.push(transmittedFreq);  // Still in kHz
+    state.data.receivedFreqs.push(receivedFreq);        // Still in kHz
+    state.data.timeOfFlights.push(timeOfFlight);
+
+    // Limit to last 100 data points
+    if (state.data.timestamps.length > 100) {
+        state.data.timestamps.shift();
+        state.data.flowRates.shift();
+        state.data.transmittedFreqs.shift();
+        state.data.receivedFreqs.shift();
+        state.data.timeOfFlights.shift();
+    }
+}
+
     // Update display elements
-    function updateDisplays() {
-        if (state.data.flowRates.length > 0) {
+    function updateDisplays) {
             const lastIndex = state.data.flowRates.length - 1;
             
             elements.flowRateDisplay.innerHTML = 

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowSense | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00c6ff;
+            --secondary: #0072ff;
+            --dark: #0a192f;
+            --darker: #020c1b;
+            --light: #ccd6f6;
+            --accent: #64ffda;
+            --warning: #ff5e57;
+            --success: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), var(--darker));
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .logo img {
+            height: 40px;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        
+        .login-header p {
+            color: rgba(204, 214, 246, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-group label i {
+            margin-right: 8px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .form-control {
+            width: 100%;
+            background: rgba(10, 25, 47, 0.6);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            color: white;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
+            background: rgba(10, 25, 47, 0.8);
+            outline: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            color: var(--dark);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(100, 255, 218, 0.2);
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .form-footer {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(204, 214, 246, 0.7);
+        }
+        
+        .form-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: var(--warning);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .success-message {
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 12, 27, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: rgba(10, 25, 47, 0.95);
+            border-radius: 10px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+        }
+        
+        /* Redirect overlay */
+        .redirect-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 12, 27, 0.95);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .redirect-content {
+            max-width: 500px;
+            padding: 2rem;
+        }
+        
+        .redirect-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(100, 255, 218, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .redirect-title {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .redirect-message {
+            color: var(--light);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Admin panel styles */
+        .admin-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .admin-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .admin-title {
+            color: var(--accent);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        
+        .users-table th, .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        }
+        
+        .users-table th {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        
+        .users-table tr:hover {
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            color: var(--primary);
+        }
+        
+        .action-btn.delete {
+            color: var(--warning);
+        }
+        
+        .action-btn.delete:hover {
+            color: #ff2e2e;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                width: 90%;
+                padding: 1.5rem;
+            }
+            
+            .users-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.error-message,
+.success-message {
+    margin-top: 0.3rem;
+}
+
+    </style>
+</head>
+<body>
+    <!-- Main Login Form -->
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <img src="logo.png" alt="FlowSense Logo">
+                <h1>FlowSense</h1>
+            </div>
+            <p>Ultrasonic Flow Monitoring System</p>
+        </div>
+        
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                <div class="error-message" id="loginError">Invalid username or password</div>
+            </div>
+            
+            <button type="submit" class="btn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            
+            <button type="button" class="btn btn-secondary" id="createAccountBtn">
+                <i class="fas fa-user-plus"></i> Create New Account
+            </button>
+        </form>
+        
+        
+    </div>
+    
+   <!-- Create Account Modal -->
+<div class="modal" id="createAccountModal">
+    <div class="modal-content">
+        <button class="close-modal" id="closeModal">&times;</button>
+        <h3 class="modal-title"><i class="fas fa-user-plus"></i> Create New Account</h3>
+        
+        <form id="createAccountForm">
+            <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label for="newUsername"><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="newUsername" class="form-control" placeholder="Choose a username" required>
+                <div class="error-message" id="usernameError" style="margin-top: 0.3rem;">Username already exists</div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label for="newPassword"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="newPassword" class="form-control" placeholder="Create a password" required>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password</label>
+                <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
+                <div class="error-message" id="passwordError" style="margin-top: 0.3rem;">Passwords do not match</div>
+            </div>
+            
+            <button type="submit" class="btn" style="margin-top: 1rem;">
+                <i class="fas fa-check"></i> Create Account
+            </button>
+            
+            <div class="success-message" id="accountSuccess" style="margin-top: 1rem;">Account created successfully!</div>
+        </form>
+    </div>
+</div>
+
+    
+    <!-- Redirect Overlay -->
+    <div class="redirect-overlay" id="redirectOverlay">
+        <div class="redirect-spinner"></div>
+        <div class="redirect-content">
+            <h2 class="redirect-title">FlowSense</h2>
+            <p class="redirect-message" id="redirectMessage">Authenticating your credentials...</p>
+        </div>
+    </div>
+    
+    <!-- Admin Panel (hidden by default) -->
+    <div class="admin-container" id="adminPanel" style="display: none;">
+        <div class="admin-header">
+            <h2 class="admin-title"><i class="fas fa-users-cog"></i> User Management</h2>
+            <p>Manage all registered users in the system</p>
+        </div>
+        
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <!-- Users will be populated here -->
+            </tbody>
+        </table>
+        
+        <button class="btn" id="backToLogin" style="margin-top: 2rem;">
+            <i class="fas fa-sign-out-alt"></i> Back to Login
+        </button>
+    </div>
+    
+    <script>
+        // User Management System
+        const UserManager = {
+            // Initialize users in localStorage if not exists
+            init: function() {
+                if (!localStorage.getItem('flowSenseUsers')) {
+                    const defaultUsers = {
+                        'user': { password: 'user', isAdmin: false },
+                        'admin': { password: 'admin', isAdmin: true }
+                    };
+                    localStorage.setItem('flowSenseUsers', JSON.stringify(defaultUsers));
+                }
+            },
+            
+            // Get all users
+            getUsers: function() {
+                return JSON.parse(localStorage.getItem('flowSenseUsers'));
+            },
+            
+            // Add a new user
+            addUser: function(username, password, isAdmin = false) {
+                const users = this.getUsers();
+                if (users[username]) {
+                    return false; // User already exists
+                }
+                
+                users[username] = { password, isAdmin };
+                localStorage.setItem('flowSenseUsers', JSON.stringify(users));
+                return true;
+            },
+            
+            // Remove a user
+            removeUser: function(username) {
+                const users = this.getUsers();
+                if (!users[username]) {
+                    return false; // User doesn't exist
+                }
+                
+                delete users[username];
+                localStorage.setItem('flowSenseUsers', JSON.stringify(users));
+                return true;
+            },
+            
+            // Authenticate user
+            authenticate: function(username, password) {
+                const users = this.getUsers();
+                if (!users[username] || users[username].password !== password) {
+                    return { success: false };
+                }
+                
+                return { 
+                    success: true,
+                    isAdmin: users[username].isAdmin 
+                };
+            },
+            
+            // Check if username exists
+            userExists: function(username) {
+                const users = this.getUsers();
+                return !!users[username];
+            }
+        };
+        
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const createAccountBtn = document.getElementById('createAccountBtn');
+        const createAccountModal = document.getElementById('createAccountModal');
+        const closeModal = document.getElementById('closeModal');
+        const createAccountForm = document.getElementById('createAccountForm');
+        const redirectOverlay = document.getElementById('redirectOverlay');
+        const redirectMessage = document.getElementById('redirectMessage');
+        const adminPanel = document.getElementById('adminPanel');
+        const backToLogin = document.getElementById('backToLogin');
+        const usersTableBody = document.getElementById('usersTableBody');
+        
+        // Initialize User Manager
+        UserManager.init();
+        
+        // Event Listeners
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const authResult = UserManager.authenticate(username, password);
+            
+            if (authResult.success) {
+                // Show redirect overlay
+                redirectOverlay.style.display = 'flex';
+                
+                if (authResult.isAdmin) {
+                    // Show admin panel
+                    redirectMessage.textContent = 'Welcome, Administrator! Loading dashboard...';
+                    
+                    setTimeout(() => {
+                        redirectOverlay.style.display = 'none';
+                        document.querySelector('.login-container').style.display = 'none';
+                        adminPanel.style.display = 'block';
+                        loadUsersTable();
+                    }, 2000);
+                } else {
+                    // Redirect to main page
+                    redirectMessage.textContent = 'Authentication successful! Redirecting to dashboard...';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'water.html';
+                    }, 2000);
+                }
+            } else {
+                // Show error
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+        
+        createAccountBtn.addEventListener('click', function() {
+            createAccountModal.style.display = 'flex';
+        });
+        
+        closeModal.addEventListener('click', function() {
+            createAccountModal.style.display = 'none';
+            resetCreateAccountForm();
+        });
+        
+        createAccountForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Reset error messages
+            document.getElementById('usernameError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
+            
+            // Validate
+            if (password !== confirmPassword) {
+                document.getElementById('passwordError').style.display = 'block';
+                return;
+            }
+            
+            if (UserManager.userExists(username)) {
+                document.getElementById('usernameError').style.display = 'block';
+                return;
+            }
+            
+            // Add user
+            const success = UserManager.addUser(username, password);
+            
+            if (success) {
+                document.getElementById('accountSuccess').style.display = 'block';
+                
+                // Clear form after success
+                setTimeout(() => {
+                    createAccountModal.style.display = 'none';
+                    resetCreateAccountForm();
+                    
+                    // Auto-fill login form with new credentials
+                    document.getElementById('username').value = username;
+                    document.getElementById('password').value = password;
+                    document.getElementById('loginError').style.display = 'none';
+                }, 1500);
+            }
+        });
+        
+        backToLogin.addEventListener('click', function() {
+            adminPanel.style.display = 'none';
+            document.querySelector('.login-container').style.display = 'block';
+        });
+        
+        // Helper Functions
+        function resetCreateAccountForm() {
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('usernameError').style.display = 'none';
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('accountSuccess').style.display = 'none';
+        }
+        
+        function loadUsersTable() {
+            const users = UserManager.getUsers();
+            usersTableBody.innerHTML = '';
+            
+            for (const username in users) {
+                if (username === 'admin') continue; // Skip admin from being deleted
+                
+                const row = document.createElement('tr');
+                
+                const usernameCell = document.createElement('td');
+                usernameCell.textContent = username;
+                
+                const actionsCell = document.createElement('td');
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'action-btn delete';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                deleteBtn.addEventListener('click', function() {
+                    if (confirm(`Are you sure you want to delete user "${username}"?`)) {
+                        UserManager.removeUser(username);
+                        loadUsersTable();
+                    }
+                });
+                
+                actionsCell.appendChild(deleteBtn);
+                row.appendChild(usernameCell);
+                row.appendChild(actionsCell);
+                
+                usersTableBody.appendChild(row);
+            }
+        }
+    </script>
+</body>
+</html>

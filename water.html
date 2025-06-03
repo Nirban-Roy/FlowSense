@@ -594,29 +594,18 @@
                         </h2>
                     </div>
                     <div class="input-group">
-    <label for="sensor-angle">
-        <i class="fas fa-chevron-right"></i>
-        Angle Between Sensors (θ):
-    </label>
-    <div class="angle-input-wrapper">
-        <input type="number" id="sensor-angle" min="0" max="180" step="1" 
-               placeholder="Enter angle (degrees)">
-        <button class="angle-set-btn" onclick="FlowSense.saveSensorConfig()">
-            <i class="fas fa-check"></i> Set
-        </button>
-    </div>
-</div>
-
-<div class="input-group">
-    <label for="pipe-diameter">
-        <i class="fas fa-ruler-horizontal"></i>
-        Pipe Diameter (m):
-    </label>
-    <div class="angle-input-wrapper">
-        <input type="number" id="pipe-diameter" min="0.01" max="1" step="0.01" 
-               placeholder="Enter diameter (meters)">
-    </div>
-</div>
+                        <label for="sensor-angle">
+                            <i class="fas fa-chevron-right"></i>
+                            Angle Between Sensors (θ):
+                        </label>
+                        <div class="angle-input-wrapper">
+                            <input type="number" id="sensor-angle" min="0" max="180" step="1" 
+                                   placeholder="Enter angle (degrees)">
+                            <button class="angle-set-btn" onclick="FlowSense.saveSensorAngle()">
+                                <i class="fas fa-check"></i> Set
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="card">
@@ -869,10 +858,10 @@ const FlowSense = (function() {
         password: ''  // No password required
     },
     defaults: {
-    sensorAngle: 45,        // degrees
-    speedOfSound: 1482,     // m/s in water at 20°C
-    pipeDiameter: 0.1       // meters
-}
+        sensorAngle: 45,        // degrees
+        speedOfSound: 1482,     // m/s in water at 20°C
+        pipeDiameter: 0.1       // meters
+    }
 };
 
 
@@ -1147,24 +1136,16 @@ const FlowSense = (function() {
     }
 
     // Load saved settings
-    // Load saved settings
-function loadSavedSettings() {
-    const allConfigs = JSON.parse(localStorage.getItem('sensorConfigs')) || {};
-    const defaultConfig = {
-        angle: config.defaults.sensorAngle,
-        diameter: config.defaults.pipeDiameter
-    };
-    
-    // Set defaults first
-    elements.sensorAngleInput.value = defaultConfig.angle;
-    document.getElementById('pipe-diameter').value = defaultConfig.diameter;
-    
-    // If we have a device selected, try to load its config
-    if (state.currentDevice && allConfigs[state.currentDevice]) {
-        elements.sensorAngleInput.value = allConfigs[state.currentDevice].angle || defaultConfig.angle;
-        document.getElementById('pipe-diameter').value = allConfigs[state.currentDevice].diameter || defaultConfig.diameter;
+    function loadSavedSettings() {
+        const savedAngle = localStorage.getItem('sensorAngle');
+        if (savedAngle) {
+            elements.sensorAngleInput.value = savedAngle;
+        } else {
+            elements.sensorAngleInput.value = config.defaults.sensorAngle;
+        }
     }
-}
+
+    // Handle device selection change
     // Handle device selection change
 function handleDeviceChange() {
     const device = elements.deviceSelect.value;
@@ -1181,19 +1162,17 @@ function handleDeviceChange() {
         });
 
         if (device) {
-    const topic = config.mqtt.topicBase + device;
-    state.mqttClient.subscribe(topic, (err) => {
-        if (err) {
-            console.error('Subscribe error:', err);
-        } else {
-            console.log('Subscribed to topic:', topic);
-            // Clear existing data when switching devices
-            resetData();
-            // Load settings for this device
-            loadSavedSettings();
+            const topic = config.mqtt.topicBase + device;
+            state.mqttClient.subscribe(topic, (err) => {
+                if (err) {
+                    console.error('Subscribe error:', err);
+                } else {
+                    console.log('Subscribed to topic:', topic);
+                    // Clear existing data when switching devices
+                    resetData();
+                }
+            });
         }
-    });
-}
     }
 }
 
@@ -1299,9 +1278,8 @@ function connectMQTT() {
     const transmittedFreq_Hz = transmittedFreq * 1000;
     const flowVelocity = (deltaF_Hz * config.defaults.speedOfSound) / (2 * transmittedFreq_Hz * Math.cos(angleRad));
 
-    // Get pipe diameter from input or default
-const pipeDiameter = parseFloat(document.getElementById('pipe-diameter').value) || config.defaults.pipeDiameter;
-const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);
+    // Convert velocity to flow rate (m/s to L/min)
+    const pipeArea = Math.PI * Math.pow(config.defaults.pipeDiameter / 2, 2);
     const flowRate = flowVelocity * pipeArea * 60000; // m³/s to L/min
 
     // Store/display values
@@ -1356,33 +1334,22 @@ const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);
     }
 
     // Save sensor angle to localStorage
-    // Save sensor configuration to localStorage
-function saveSensorConfig() {
-    const device = state.currentDevice || 'default';
-    const config = {
-        angle: elements.sensorAngleInput.value,
-        diameter: document.getElementById('pipe-diameter').value
-    };
-    
-    // Get existing configs or create new object
-    const allConfigs = JSON.parse(localStorage.getItem('sensorConfigs') || {};
-    
-    // Update config for current device
-    allConfigs[device] = config;
-    localStorage.setItem('sensorConfigs', JSON.stringify(allConfigs));
-    
-    // Show confirmation
-    const btn = document.querySelector('.angle-set-btn');
-    btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-    btn.style.background = 'rgba(46, 204, 113, 0.2)';
-    btn.style.color = 'var(--success)';
-    
-    setTimeout(() => {
-        btn.innerHTML = '<i class="fas fa-check"></i> Set';
-        btn.style.background = 'rgba(100, 255, 218, 0.2)';
-        btn.style.color = 'var(--accent)';
-    }, 2000);
-}
+    function saveSensorAngle() {
+        const angle = elements.sensorAngleInput.value;
+        localStorage.setItem('sensorAngle', angle);
+        
+        // Show confirmation
+        const btn = document.querySelector('.angle-set-btn');
+        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        btn.style.background = 'rgba(46, 204, 113, 0.2)';
+        btn.style.color = 'var(--success)';
+        
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-check"></i> Set';
+            btn.style.background = 'rgba(100, 255, 218, 0.2)';
+            btn.style.color = 'var(--accent)';
+        }, 2000);
+    }
 
     // Date/Time picker functions
     // ---- helper: parse YYYY-MM-DD as local midnight ----

@@ -7,569 +7,510 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fft-js@0.0.11/src/fft.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-    <style>
-        :root {
-            --primary: #00c6ff;
-            --secondary: #0072ff;
-            --dark: #0a192f;
-            --darker: #020c1b;
-            --light: #ccd6f6;
-            --accent: #64ffda;
-            --warning: #ff5e57;
-            --success: #2ecc71;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, var(--dark), var(--darker));
-            color: var(--light);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        .container {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            grid-template-rows: 70px 1fr;
-            min-height: 100vh;
-            transition: all 0.3s ease;
-        }
+<style>
+    :root {
+        --primary: #00c6ff;
+        --secondary: #0072ff;
+        --dark: #0a192f;
+        --darker: #020c1b;
+        --light: #ccd6f6;
+        --accent: #64ffda;
+        --warning: #ff5e57;
+        --success: #2ecc71;
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+        background: linear-gradient(135deg, var(--dark), var(--darker));
+        color: var(--light);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    
+    .container {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        grid-template-rows: 70px 1fr;
+        min-height: 100vh;
+        transition: all 0.3s ease;
+    }
 
-        .container.sidebar-collapsed {
-            grid-template-columns: 70px 1fr;
-        }
-        
-        header {
-            grid-column: 1 / 3;
-            background: rgba(10, 25, 47, 0.8);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            z-index: 10;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .logo img {
-            height: 40px;
-        }
-        
-        .logo h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 700;
+    .container.sidebar-collapsed {
+        grid-template-columns: 70px 1fr;
+    }
+    
+    header {
+        grid-column: 1 / 3;
+        background: rgba(10, 25, 47, 0.8);
+        backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2rem;
+        border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .logo img {
+        height: 40px;
+    }
+    
+    .logo h1 {
+        font-size: 1.5rem;
+        background: linear-gradient(to right, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+    }
+    
+    aside {
+        background: rgba(2, 12, 27, 0.7);
+        backdrop-filter: blur(5px);
+        border-right: 1px solid rgba(100, 255, 218, 0.1);
+        padding: 2rem 0;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .sidebar-toggle {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(100, 255, 218, 0.1);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        color: var(--accent);
+        width: 40px;
+        height: 40px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .sidebar-toggle:hover {
+        background: rgba(100, 255, 218, 0.2);
+    }
+
+    .sidebar-collapsed .menu-item span {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+    }
+
+    .menu-item span {
+        transition: all 0.3s ease;
+    }
+    
+    .menu-item {
+        padding: 0.8rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .menu-item:hover {
+        background: rgba(100, 255, 218, 0.1);
+    }
+    
+    .menu-item.active {
+        background: rgba(100, 255, 218, 0.2);
+        border-left: 3px solid var(--accent);
+    }
+    
+    .menu-item.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(100, 255, 218, 0.1), transparent);
+    }
+    
+    .menu-item i {
+        color: var(--accent);
+        width: 20px;
+        text-align: center;
+    }
+    
+    main {
+        padding: 2rem;
+        overflow-y: auto;
+        height: calc(100vh - 70px);
+    }
+    
+    .card {
+        background: rgba(10, 25, 47, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        border: 1px solid rgba(100, 255, 218, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    
+    .card-title i {
+        font-size: 1.2rem;
+    }
+    
+    .flow-display {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .flow-rate-display {
+        text-align: center;
+    }
+    
+    .flow-rate {
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+        background: linear-gradient(to right, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .flow-unit {
+        font-size: 1.2rem;
+        opacity: 0.7;
+        margin-left: 0.3rem;
+    }
+    
+    .frequency-display {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    
+    .frequency-value {
+        text-align: center;
+        flex: 1;
+    }
+    
+    .frequency-label {
+        font-size: 0.9rem;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+    }
+    
+    .frequency-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .frequency-unit {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+    
+    .graph-container {
+        height: 300px;
+        margin-top: 1rem;
+    }
+    
+    .custom-select {
+        margin-bottom: 1.5rem;
+    }
+
+    .custom-select label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+        font-size: 0.9rem;
+    }
+
+    .select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .select-wrapper select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: 100%;
+        background: rgba(10, 25, 47, 0.8);
+        border: 1px solid rgba(100, 255, 218, 0.3);
+        color: white;
+        padding: 0.8rem 1rem;
+        border-radius: 6px;
+        outline: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .select-wrapper select:hover {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.1);
+    }
+
+    .select-wrapper select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
+    }
+
+    .select-arrow {
+        position: absolute;
+        top: 50%;
+        right: 1rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: var(--accent);
+        font-size: 0.8rem;
+    }
+
+    .input-group {
+        margin-bottom: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    .input-group label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+        font-size: 0.9rem;
+    }
+
+    .input-group label i {
+        margin-right: 8px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .input-wrapper input {
+        flex: 1;
+        background: rgba(10, 25, 47, 0.6);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        color: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        height: 44px;
+    }
+
+    .input-wrapper input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
+        background: rgba(10, 25, 47, 0.8);
+        outline: none;
+    }
+
+    .set-btn {
+        background: rgba(100, 255, 218, 0.2);
+        color: var(--accent);
+        border: none;
+        padding: 0 20px;
+        height: 44px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .set-btn:hover {
+        background: rgba(100, 255, 218, 0.3);
+    }
+    
+    .date-range-picker {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .date-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .date-input-group label {
+        font-size: 0.9rem;
+        color: var(--accent);
+    }
+
+    .custom-date-time-picker {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+    }
+
+    .date-input, .time-input {
+        flex: 1;
+        background: rgba(10, 25, 47, 0.8);
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        color: white;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        outline: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    .date-input:hover, .time-input:hover {
+        border-color: var(--accent);
+        background: rgba(10, 25, 47, 0.9);
+    }
+
+    .time-input::-webkit-calendar-picker-indicator {
+        filter: invert(65%) sepia(91%) saturate(5348%) hue-rotate(118deg) brightness(102%) contrast(101%);
+        cursor: pointer;
+    }
+
+    .download-options {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .download-btn {
+        background: linear-gradient(135deg, var(--accent), var(--primary));
+        color: var(--dark);
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
+    }
+
+    .page-content {
+        display: none;
+    }
+    
+    .page-content.active {
+        display: block;
+    }
+    @media (max-width: 768px) {
+        .container {
+            grid-template-columns: 1fr;
         }
         
         aside {
-            background: rgba(2, 12, 27, 0.7);
-            backdrop-filter: blur(5px);
-            border-right: 1px solid rgba(100, 255, 218, 0.1);
-            padding: 2rem 0;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .sidebar-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .sidebar-toggle {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(100, 255, 218, 0.1);
-            border: 1px solid rgba(100, 255, 218, 0.2);
-            color: var(--accent);
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 10;
-        }
-
-        .sidebar-toggle:hover {
-            background: rgba(100, 255, 218, 0.2);
-        }
-
-        .sidebar-collapsed .menu-item span {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-        }
-
-        .menu-item span {
-            transition: all 0.3s ease;
-        }
-        
-        .menu-item {
-            padding: 0.8rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .menu-item:hover {
-            background: rgba(100, 255, 218, 0.1);
-        }
-        
-        .menu-item.active {
-            background: rgba(100, 255, 218, 0.2);
-            border-left: 3px solid var(--accent);
-        }
-        
-        .menu-item.active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(100, 255, 218, 0.1), transparent);
-        }
-        
-        .menu-item i {
-            color: var(--accent);
-            width: 20px;
-            text-align: center;
-        }
-        
-        main {
-            padding: 2rem;
-            overflow-y: auto;
-            height: calc(100vh - 70px);
-        }
-        
-        .card {
-            background: rgba(10, 25, 47, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            border: 1px solid rgba(100, 255, 218, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            margin-bottom: 1.5rem;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-        
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
-        }
-        
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        
-        .card-title i {
-            font-size: 1.2rem;
-        }
-        
-        .flow-display {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-        
-        .flow-rate-display {
-            text-align: center;
-        }
-        
-        .flow-rate {
-            font-size: 3.5rem;
-            font-weight: bold;
-            margin: 0.5rem 0;
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .flow-unit {
-            font-size: 1.2rem;
-            opacity: 0.7;
-            margin-left: 0.3rem;
-        }
-        
-        .frequency-display {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-        
-        .frequency-value {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .frequency-label {
-            font-size: 0.9rem;
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-        }
-        
-        .frequency-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        
-        .frequency-unit {
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-        
-        .graph-container {
-            height: 300px;
-            margin-top: 1rem;
-        }
-        
-        .custom-select {
-            margin-bottom: 1.5rem;
-        }
-
-        .custom-select label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
-
-        .select-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .select-wrapper select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            width: 100%;
-            background: rgba(10, 25, 47, 0.8);
-            border: 1px solid rgba(100, 255, 218, 0.3);
-            color: white;
-            padding: 0.8rem 1rem;
-            border-radius: 6px;
-            outline: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .select-wrapper select:hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.1);
-        }
-
-        .select-wrapper select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
-        }
-
-        .select-arrow {
-            position: absolute;
-            top: 50%;
-            right: 1rem;
-            transform: translateY(-50%);
-            pointer-events: none;
-            color: var(--accent);
-            font-size: 0.8rem;
-        }
-
-        /* Consistent input group styling */
-.input-group {
-    margin-bottom: 1.5rem;
-    padding: 0 1rem;
-}
-
-.input-group label {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    color: var(--accent);
-    font-size: 0.9rem;
-}
-
-.input-group label i {
-    margin-right: 8px;
-    width: 20px;
-    text-align: center;
-}
-
-.input-wrapper {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.input-wrapper input {
-    flex: 1;
-    background: rgba(10, 25, 47, 0.6);
-    border: 1px solid rgba(100, 255, 218, 0.2);
-    color: white;
-    padding: 12px 15px;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    height: 44px;
-}
-
-.input-wrapper input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
-    background: rgba(10, 25, 47, 0.8);
-    outline: none;
-}
-
-.set-btn {
-    background: rgba(100, 255, 218, 0.2);
-    color: var(--accent);
-    border: none;
-    padding: 0 20px;
-    height: 44px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.set-btn:hover {
-    background: rgba(100, 255, 218, 0.3);
-}
-        #sensor-angle {
-            flex: 1;
-            background: rgba(10, 25, 47, 0.6);
-            border: 1px solid rgba(100, 255, 218, 0.2);
-            color: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        #sensor-angle:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
-            background: rgba(10, 25, 47, 0.8);
-        }
-
-        .angle-set-btn {
-            background: rgba(100, 255, 218, 0.2);
-            color: var(--accent);
-            border: none;
-            padding: 0 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .angle-set-btn:hover {
-            background: rgba(100, 255, 218, 0.3);
-        }
-
-        .date-range-picker {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .date-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .date-input-group label {
-            font-size: 0.9rem;
-            color: var(--accent);
-        }
-
-        .custom-date-time-picker {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-        }
-
-        .date-input, .time-input {
-            flex: 1;
-            background: rgba(10, 25, 47, 0.8);
-            border: 1px solid rgba(100, 255, 218, 0.2);
-            color: white;
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            outline: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .date-input:hover, .time-input:hover {
-            border-color: var(--accent);
-            background: rgba(10, 25, 47, 0.9);
-        }
-/* style native time picker icon to inherit accent */
-.time-input::-webkit-calendar-picker-indicator {
-    filter: invert(65%) sepia(91%) saturate(5348%) hue-rotate(118deg) brightness(102%) contrast(101%);
-    cursor: pointer;
-}
-
-
-        .download-options {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .download-btn {
-            background: linear-gradient(135deg, var(--accent), var(--primary));
-            color: var(--dark);
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
-        }
-
-        .page-content {
             display: none;
         }
         
-        .page-content.active {
-            display: block;
-        }
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            aside {
-                display: none;
-            }
-            
-            .flow-display {
-                grid-template-columns: 1fr;
-            }
-            
-            .frequency-display {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .date-range-picker {
-                grid-template-columns: 1fr;
-            }
-        }
-        /* About Page */
-        .about-content {
-            line-height: 1.7;
+        .flow-display {
+            grid-template-columns: 1fr;
         }
         
-        .about-content h2 {
-            color: var(--accent);
-            margin-bottom: 1.5rem;
-        }
-        
-        .about-content p {
-            margin-bottom: 1rem;
-        }
-        
-        .about-content ul {
-            margin-bottom: 1.5rem;
-            padding-left: 1.5rem;
-        }
-        
-        .about-content li {
-            margin-bottom: 0.5rem;
+        .frequency-display {
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        /* Overview Page */
-        .guide-step {
-            background: rgba(0, 198, 255, 0.05);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
-            margin-bottom: 1.5rem;
+        .date-range-picker {
+            grid-template-columns: 1fr;
         }
-        
-        .guide-step h4 {
-            color: var(--primary);
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .step-number {
-            background: var(--primary);
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-    </style>
+    }
+    
+    .guide-step {
+        background: rgba(0, 198, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--primary);
+        margin-bottom: 1.5rem;
+    }
+    
+    .guide-step h4 {
+        color: var(--primary);
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .step-number {
+        background: var(--primary);
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+</style>
 </head>
 <body>
     <div class="container">
@@ -578,11 +519,11 @@
                 <img src="logo.png" alt="IEMA Logo">
                 <h1>FlowSense</h1>
             </div>
-	    <button class="sidebar-toggle" id="sidebarToggle">
+            <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-times" id="toggleIcon"></i>
             </button>
         </header>
-        
+
         <aside>
             <nav class="sidebar-menu">
                 <div class="menu-item active" data-page="dashboard">
@@ -603,7 +544,7 @@
                 </div>
             </nav>
         </aside>
-        
+    
         <main>
             <!-- Dashboard Section -->
             <div id="dashboard-page" class="page-content active">
@@ -623,83 +564,84 @@
                         </div>
                     </div>
                 </div>
-                
-              <div class="card" style="margin-bottom: 1.5rem;">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-cog"></i>
-            Sensor Configuration
-        </h2>
-    </div>
-    
-    <!-- Sensor Angle Input -->
-    <div class="input-group">
-        <label for="sensor-angle">
-            <i class="fas fa-chevron-right"></i>
-            Angle Between Sensors (θ):
-        </label>
-        <div class="input-wrapper">
-            <input type="number" id="sensor-angle" min="0" max="180" step="1" 
-                   value="45" placeholder="Enter angle (degrees)">
-            <button class="set-btn" onclick="FlowSense.saveSensorAngle()">
-                <i class="fas fa-check"></i> Set
-            </button>
-        </div>
-    </div>
-    
-    <!-- Pipe Diameter Input -->
-    <div class="input-group">
-        <label for="pipe-diameter">
-            <i class="fas fa-ruler-horizontal"></i>
-            Pipe Diameter (m):
-        </label>
-        <div class="input-wrapper">
-            <input type="number" id="pipe-diameter" min="0.01" max="1" step="0.01" 
-                   value="0.1" placeholder="0.01-1.0">
-            <button class="set-btn" onclick="FlowSense.savePipeDiameter()">
-                <i class="fas fa-check"></i> Set
-            </button>
-        </div>
-    </div>
-</div>
-                
-                <div class="card">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-water"></i>
-            Flow Rate Monitoring
-        </h2>
-    </div>
-    <div class="flow-display">
-        <div class="flow-rate-display">
-            <div class="flow-rate" id="current-flow-rate">0.0<span class="flow-unit">L/min</span></div>
-            <div>Current Flow Rate</div>
-        </div>
-        <div class="frequency-display">
-            <div class="frequency-value">
-                <div class="frequency-label">Time of Flight</div>
-                <div class="frequency-number" id="time-of-flight">0.0<span class="frequency-unit">μs</span></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card" style="grid-column: 1 / -1;">
-    <div class="card-header">
-        <h2 class="card-title">
-            <i class="fas fa-chart-area"></i>
-            Monitoring Chart
-        </h2>
-    </div>
-    <div class="graph-container" style="margin-top: 1rem;">
-        <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">
-            <i class="fas fa-chart-line"></i> Flow Rate Trend
-        </h3>
-        <canvas id="flowRateChart"></canvas>
-    </div>
-</div>
-
             
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-cog"></i>
+                            Sensor Configuration
+                        </h2>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sensor-angle">
+                            <i class="fas fa-chevron-right"></i>
+                            Angle Between Sensors (θ):
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="sensor-angle" min="0" max="180" step="1" 
+                                value="45" placeholder="Enter angle (degrees)">
+                            <button class="set-btn" onclick="FlowSense.saveSensorAngle()">
+                                <i class="fas fa-check"></i> Set
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="pipe-diameter">
+                            <i class="fas fa-ruler-horizontal"></i>
+                            Pipe Diameter (m):
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="number" id="pipe-diameter" min="0.01" max="1" step="0.01" 
+                                value="0.1" placeholder="0.01-1.0">
+                            <button class="set-btn" onclick="FlowSense.savePipeDiameter()">
+                                <i class="fas fa-check"></i> Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-water"></i> Flow Rate Monitoring
+                        </h2>
+                    </div>
+                    <div class="flow-display">
+                        <div class="flow-rate-display">
+                            <div class="flow-rate" id="current-flow-rate">0.0<span class="flow-unit">L/min</span></div>
+                            <div>Current Flow Rate</div>
+                        </div>
+                        <div class="frequency-display">
+                            <div class="frequency-value">
+                                <div class="frequency-label">Time of Flight</div>
+                                <div class="frequency-number" id="time-of-flight">0.0<span class="frequency-unit">μs</span></div>
+                            </div>
+                            <div class="frequency-value">
+                                <div class="frequency-label">Flow Velocity</div>
+                                <div class="frequency-number" id="flow-velocity">0.0<span class="frequency-unit">m/s</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-area"></i> Monitoring Charts
+                        </h2>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">
+                            <i class="fas fa-chart-line"></i> Flow Rate Trend
+                        </h3>
+                        <div class="graph-container">
+                            <canvas id="flowRateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Reports Section -->
             <div id="reports-page" class="page-content">
                 <div class="card">
@@ -710,40 +652,26 @@
                         Generate and download comprehensive reports for your flow meter data. 
                         Select date range to get detailed CSV files.
                     </p>
-                    
+                
                     <div class="date-range-picker">
                         <div class="date-input-group">
                             <label for="report-start-date">From:</label>
                             <div class="custom-date-time-picker">
-                                <input type="text" id="report-start-date" class="date-input" placeholder="Select date" readonly>
-                                
-                                <input type="time"
-       id="report-start-time"
-       class="time-input"
-       min="00:00" max="23:59" value="00:00" required>
-
+                                <input type="text" id="report-start-date" class="date-input" placeholder="Select date">
+                                <input type="time" id="report-start-time" class="time-input" min="00:00" max="23:59" value="00:00" required>
                             </div>
                         </div>
-                        
+                    
                         <div class="date-input-group">
                             <label for="report-end-date">To:</label>
                             <div class="custom-date-time-picker">
-                                <input type="text" id="report-end-date" class="date-input" placeholder="Select date" readonly>
-                                
-                                <input type="time"
-       id="report-end-time"
-       class="time-input"
-       min="00:00" max="23:59" value="00:00" required>
-
+                                <input type="text" id="report-end-date" class="date-input" placeholder="Select date">
+                                <input type="time" id="report-end-time" class="time-input" min="00:00" max="23:59" value="23:59" required>
                             </div>
                         </div>
                     </div>
 
                     <div class="download-options">
-                        <button class="download-btn" onclick="FlowSense.downloadFrequencyReport()">
-                            <i class="fas fa-wave-square"></i>
-                            Download Frequency Data
-                        </button>
                         <button class="download-btn" onclick="FlowSense.downloadFlowRateReport()">
                             <i class="fas fa-tachometer-alt"></i>
                             Download Flow Rate Data
@@ -755,150 +683,46 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- About Section -->
+        
+            <!-- About and Overview Sections -->
             <div id="about-page" class="page-content">
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-info-circle"></i> About FlowSense
-                        </h2>
-                    </div>
-                    <div style="margin-top: 1.5rem;">
-                        <h3 style="color: var(--accent); margin-bottom: 1rem;">
-                            <i class="fas fa-flask"></i> Technology Overview
-                        </h3>
-                        <p style="margin-bottom: 1rem;">
-                            FlowSense represents the cutting edge in ultrasonic flow measurement technology. 
-                            Our system combines advanced signal processing with industrial-grade sensors to 
-                            deliver unparalleled accuracy in flow monitoring.
-                        </p>
-                        
-                        <h3 style="color: var(--accent); margin-bottom: 1rem; margin-top: 2rem;">
-                            <i class="fas fa-cogs"></i> How It Works
-                        </h3>
-                        <p style="margin-bottom: 1rem;">
-                            The system uses ultrasonic transducers to measure the Doppler shift caused by fluid flow.
-                            Key measurements include:
-                        </p>
-                        <ul style="margin-left: 2rem; margin-bottom: 1.5rem;">
-                            <li>Transmitted frequency (typically 1-2 MHz)</li>
-                            <li>Received frequency (shifted by flow velocity)</li>
-                            <li>Time of flight (for transit-time measurements)</li>
-                        </ul>
-                        
-                        <h3 style="color: var(--accent); margin-bottom: 1rem;">
-                            <i class="fas fa-cloud"></i> Data Connectivity
-                        </h3>
-                        <p>
-                            All measurements are transmitted via MQTT to our cloud platform for real-time monitoring
-                            and historical data analysis. The system supports multiple devices with automatic
-                            data synchronization.
-                        </p>
-                    </div>
+                    <div class="card-header"><h2 class="card-title"><i class="fas fa-info-circle"></i> About FlowSense</h2></div>
+                    <p style="margin-top: 1rem;">FlowSense represents the cutting edge in ultrasonic flow measurement technology, delivering unparalleled accuracy in flow monitoring.</p>
                 </div>
             </div>
-            
-            <!-- Overview Section -->
             <div id="overview-page" class="page-content">
                 <div class="card">
-                    <h2 style="color: var(--accent); margin-bottom: 1.5rem;">
-                        <i class="fas fa-question-circle"></i> User Guide
-                    </h2>
-                    <p style="margin-bottom: 2rem;">
-                        Welcome to FlowSense! This guide will help you navigate and utilize 
-                        all the features of your flow monitoring dashboard.
-                    </p>
-                    
+                    <h2 style="color: var(--accent); margin-bottom: 1.5rem;"><i class="fas fa-question-circle"></i> User Guide</h2>
                     <div class="guide-step">
-                        <h4>
-                            <span class="step-number">1</span>
-                            Dashboard Overview
-                        </h4>
-                        <p>
-                            The dashboard displays real-time data from your connected flow meter. 
-                            You'll see the current flow rate, transmitted and received frequencies, 
-                            and time of flight measurements. Graphs show historical trends for 
-                            both flow rate and frequency values.
-                        </p>
+                        <h4><span class="step-number">1</span>Sensor Configuration</h4>
+                        <p>On the Dashboard, input the angle between your sensors and the inner diameter of the pipe. These values are crucial for accurate flow rate calculations.</p>
                     </div>
-                    
                     <div class="guide-step">
-                        <h4>
-                            <span class="step-number">2</span>
-                            Device Selection
-                        </h4>
-                        <p>
-                            Use the dropdown at the top of the dashboard to switch between 
-                            different flow meter devices. Each device will display its own 
-                            real-time data and historical trends.
-                        </p>
-                    </div>
-                    
-                    <div class="guide-step">
-                        <h4>
-                            <span class="step-number">3</span>
-                            Downloading Reports
-                        </h4>
-                        <p>
-                            The "Download Reports" section allows you to:
-                            <br>• Select date ranges for historical data
-                            <br>• Download CSV files with frequency values
-                            <br>• Export flow rate data for analysis
-                            <br>• Generate comprehensive reports
-                        </p>
-                    </div>
-                    
-                    <div class="guide-step">
-                        <h4>
-                            <span class="step-number">4</span>
-                            Understanding the Data
-                        </h4>
-                        <p>
-                            <strong>Flow Rate:</strong> Calculated volumetric flow in liters per minute (L/min)
-                            <br><strong>Transmitted Frequency:</strong> Original ultrasonic frequency sent (kHz)
-                            <br><strong>Received Frequency:</strong> Frequency detected after passing through fluid (kHz)
-                            <br><strong>Time of Flight:</strong> Time taken for sound to travel between transducers (μs)
-                        </p>
-                    </div>
-                    
-                    <div class="guide-step">
-                        <h4>
-                            <span class="step-number">5</span>
-                            Navigation
-                        </h4>
-                        <p>
-                            • Use the sidebar to switch between Dashboard, Reports, About, and this Guide
-                            <br>• Click the ☰ icon to collapse/expand the sidebar
-                            <br>• All data updates automatically in real-time
-                        </p>
+                        <h4><span class="step-number">2</span>Device Selection & Monitoring</h4>
+                        <p>Use the dropdown to switch between devices. Real-time Flow Rate, Time of Flight, and Flow Velocity will be displayed and charted automatically.</p>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-    
-
-    <script>
+<script>
 // FlowSense Application
 const FlowSense = (function() {
     // Configuration
     const config = {
-    mqtt: {
-        host: 'test.mosquitto.org',
-        port: 8081, // Secure WebSocket port for test.mosquitto.org
-        clientId: 'FlowSenseWebClient_' + Math.random().toString(16).substring(2, 8),
-        topicBase: 'flowsense/device/',
-        username: '', // No username required for test.mosquitto.org
-        password: ''  // No password required
-    },
-    defaults: {
-        sensorAngle: 45,        // degrees
-        speedOfSound: 1482,     // m/s in water at 20°C
-        pipeDiameter: 0.1       // meters
-    }
-};
-
+        mqtt: {
+            host: 'test.mosquitto.org',
+            port: 8081, // Secure WebSocket port for browsers
+            clientId: 'FlowSenseWebClient_' + Math.random().toString(16).substring(2, 8),
+            topicBase: 'flowsense/device/',
+        },
+        defaults: {
+            sensorAngle: 45,        // degrees
+            speedOfSound: 1482,     // m/s in water at 20°C
+            pipeDiameter: 0.1       // meters
+        }
+    };
 
     // Application state
     let state = {
@@ -906,28 +730,22 @@ const FlowSense = (function() {
         mqttClient: null,
         charts: {
             flowRate: null,
-            frequency: null
         },
         data: {
             timestamps: [],
             flowRates: [],
-            transmittedFreqs: [],
-            receivedFreqs: [],
-            timeOfFlights: []
+            timeOfFlights: [],
+            flowVelocities: []
         },
-        ui: {
-            currentPage: 'dashboard'
-        }
     };
 
     // DOM Elements
     const elements = {
         flowRateDisplay: document.getElementById('current-flow-rate'),
-        transmittedFreqDisplay: document.getElementById('transmitted-freq'),
-        receivedFreqDisplay: document.getElementById('received-freq'),
         timeOfFlightDisplay: document.getElementById('time-of-flight'),
+        flowVelocityDisplay: document.getElementById('flow-velocity'),
         sensorAngleInput: document.getElementById('sensor-angle'),
-	pipeDiameterInput: document.getElementById('pipe-diameter'),
+        pipeDiameterInput: document.getElementById('pipe-diameter'),
         deviceSelect: document.getElementById('device-select')
     };
 
@@ -938,782 +756,295 @@ const FlowSense = (function() {
         setupEventListeners();
         loadSavedSettings();
         connectMQTT();
+        
+        setTimeout(() => {
+            if (!state.mqttClient || !state.mqttClient.connected) {
+                console.log("MQTT not connected, starting demo mode");
+                startDemoMode();
+            }
+        }, 5000);
     }
 
     // Initialize charts
     function initCharts() {
         const flowRateCtx = document.getElementById('flowRateChart').getContext('2d');
-        const frequencyCtx = document.getElementById('frequencyChart').getContext('2d');
-        
-        state.charts.flowRate = new Chart(flowRateCtx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Flow Rate (L/min)',
-            data: [],
-            borderColor: '#00c6ff',
-            backgroundColor: 'rgba(0, 198, 255, 0.1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'top',
-                align: 'center',           // Center the legend horizontally
-                labels: {
-                    color: '#fff',
-                    boxWidth: 20,         // Rectangular legend box
-                    usePointStyle: false, // Keep default (rectangle), not circle
-                    padding: 10
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    color: '#fff'
-                },
-                title: {
-                    display: true,
-                    text: 'Flow Rate (L/min)',
-                    color: '#fff'
-                },
-                grid: {
-                    color: 'rgba(255,255,255,0.07)'
-                }
-            },
-            x: {
-                ticks: {
-                    color: '#fff'
-                },
-                grid: {
-                    display: false
-                }
-            }
-        }
-    }
-});
-
-        
-        state.charts.frequency = new Chart(frequencyCtx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [
-            {
-                label: 'Transmitted Frequency (kHz)',
-                data: [],
-                borderColor: '#64ffda',
-                backgroundColor: 'rgba(100, 255, 218, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: 'Received Frequency (kHz)',
-                data: [],
-                borderColor: '#0072ff',
-                backgroundColor: 'rgba(0, 114, 255, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'top',
-                align: 'center', // 🟢 Centered horizontally
-                labels: {
-                    color: '#fff',
-                    boxWidth: 20, // 🟩 Rectangle size
-                    usePointStyle: false, // 🛑 Keep default rectangle instead of circle
-                    padding: 10
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    color: '#fff'
-                },
-                title: {
-                    display: true,
-                    text: 'Frequency (kHz)',
-                    color: '#fff'
-                },
-                grid: {
-                    color: 'rgba(255,255,255,0.07)'
-                }
-            },
-            x: {
-                ticks: {
-                    color: '#fff'
-                },
-                grid: {
-                    display: false
-                }
-            }
-        }
-    }
-});
-
-
-    }
-
-    function getChartOptions(yAxisTitle) {
-        return {
+        const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#ccd6f6'
-                    }
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false
-                }
-            },
+            plugins: { legend: { labels: { color: '#fff' } } },
             scales: {
-                x: {
-                    grid: {
-                        color: 'rgba(100, 255, 218, 0.1)'
-                    },
-                    ticks: {
-                        color: '#ccd6f6',
-                        callback: function(value, index, values) {
-                            const date = new Date(state.data.timestamps[index]);
-                            return date.toLocaleTimeString();
-                        }
-                    }
-                },
-                y: {
-                    grid: {
-                        color: 'rgba(100, 255, 218, 0.1)'
-                    },
-                    ticks: {
-                        color: '#ccd6f6'
-                    },
-                    title: {
-                        display: true,
-                        text: yAxisTitle,
-                        color: '#ccd6f6'
-                    }
-                }
-            },
-            interaction: {
-                mode: 'nearest',
-                axis: 'x',
-                intersect: false
+                y: { beginAtZero: true, ticks: { color: '#fff' }, title: { display: true, color: '#fff', text: 'Flow Rate (L/min)' }, grid: { color: 'rgba(255,255,255,0.07)' } },
+                x: { ticks: { color: '#fff' }, grid: { display: false } }
             }
         };
+
+        state.charts.flowRate = new Chart(flowRateCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Flow Rate (L/min)', data: [], borderColor: '#00c6ff', backgroundColor: 'rgba(0, 198, 255, 0.1)', borderWidth: 2, tension: 0.3, fill: true
+                }]
+            },
+            options: chartOptions
+        });
     }
 
-    // Setup navigation
+    // Setup navigation and UI interactions
     function setupNavigation() {
-        // Menu item click handlers
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', function() {
-                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                document.querySelector('.menu-item.active').classList.remove('active');
                 this.classList.add('active');
-                
-                document.querySelectorAll('.page-content').forEach(page => {
-                    page.classList.remove('active');
-                });
-                
-                const pageId = this.getAttribute('data-page') + '-page';
-                document.getElementById(pageId).classList.add('active');
-                state.ui.currentPage = this.getAttribute('data-page');
+                document.querySelector('.page-content.active').classList.remove('active');
+                document.getElementById(this.getAttribute('data-page') + '-page').classList.add('active');
             });
         });
         
-        // Sidebar toggle
         const toggleButton = document.getElementById('sidebarToggle');
-    const toggleIcon = document.getElementById('toggleIcon');
-    const container = document.querySelector('.container');
-
-    toggleButton.addEventListener('click', function () {
-        container.classList.toggle('sidebar-collapsed');
-
-        // Toggle between hamburger and cross icon
-        if (container.classList.contains('sidebar-collapsed')) {
-            toggleIcon.classList.remove('fa-times');
-            toggleIcon.classList.add('fa-bars');
-        } else {
-            toggleIcon.classList.remove('fa-bars');
-            toggleIcon.classList.add('fa-times');
-        }
-    });
+        toggleButton.addEventListener('click', () => {
+            const container = document.querySelector('.container');
+            container.classList.toggle('sidebar-collapsed');
+            toggleButton.querySelector('i').className = container.classList.contains('sidebar-collapsed') ? 'fas fa-bars' : 'fas fa-times';
+        });
     }
 
-    // Setup event listeners
+    // Setup other event listeners
     function setupEventListeners() {
-        // Device selection
         elements.deviceSelect.addEventListener('change', handleDeviceChange);
-        
-        // Angle configuration
-        document.querySelector('.angle-set-btn').addEventListener('click', saveSensorAngle);
-        
-        // Initialize date/time pickers
         initDateTimePickers();
     }
 
- 
-    // Load saved settings
-function loadSavedSettings() {
-    const savedAngle = localStorage.getItem('sensorAngle');
-    if (savedAngle) {
-        elements.sensorAngleInput.value = savedAngle;
-    } else {
-        elements.sensorAngleInput.value = config.defaults.sensorAngle;
-    }
-    
-    // Add this for pipe diameter
-    const savedDiameter = localStorage.getItem('pipeDiameter');
-    if (savedDiameter) {
-        elements.pipeDiameterInput.value = savedDiameter;
-    } else {
-        elements.pipeDiameterInput.value = config.defaults.pipeDiameter;
-    }
-}
-
-// Save pipe diameter to localStorage
-function savePipeDiameter() {
-    const diameter = elements.pipeDiameterInput.value;
-    localStorage.setItem('pipeDiameter', diameter);
-    
-    // Show confirmation
-    const btn = document.querySelectorAll('.angle-set-btn')[1]; // Get the second button
-    btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-    btn.style.background = 'rgba(46, 204, 113, 0.2)';
-    btn.style.color = 'var(--success)';
-    
-    setTimeout(() => {
-        btn.innerHTML = '<i class="fas fa-check"></i> Set';
-        btn.style.background = 'rgba(100, 255, 218, 0.2)';
-        btn.style.color = 'var(--accent)';
-    }, 2000);
-}
-    // Handle device selection change
-function handleDeviceChange() {
-    const device = elements.deviceSelect.value;
-    state.currentDevice = device;
-
-    if (state.mqttClient && state.mqttClient.connected) {
-        // Unsubscribe from all topics first
-        state.mqttClient.unsubscribe(config.mqtt.topicBase + '+', (err) => {
-            if (err) {
-                console.error('Unsubscribe error:', err);
-            } else {
-                console.log('Unsubscribed from previous topics');
-            }
-        });
-
-        if (device) {
-            const topic = config.mqtt.topicBase + device;
-            state.mqttClient.subscribe(topic, (err) => {
-                if (err) {
-                    console.error('Subscribe error:', err);
-                } else {
-                    console.log('Subscribed to topic:', topic);
-                    // Clear existing data when switching devices
-                    resetData();
-                }
-            });
-        }
-    }
-}
-
-
-    // Reset data arrays
-    function resetData() {
-        state.data = {
-            timestamps: [],
-            flowRates: [],
-            transmittedFreqs: [],
-            receivedFreqs: [],
-            timeOfFlights: []
-        };
-        
-        updateDisplays();
-        updateCharts();
+    // Load saved settings from localStorage
+    function loadSavedSettings() {
+        elements.sensorAngleInput.value = localStorage.getItem('sensorAngle') || config.defaults.sensorAngle;
+        elements.pipeDiameterInput.value = localStorage.getItem('pipeDiameter') || config.defaults.pipeDiameter;
     }
 
-    // Connect to MQTT broker
-    // Connect to MQTT broker using MQTT.js
-function connectMQTT() {
-    const clientId = 'FlowSenseWebClient_' + Math.random().toString(16).substring(2, 8);
-    const options = {
-        clientId: clientId,
-        username: config.mqtt.username,
-        password: config.mqtt.password,
-        clean: true,
-        reconnectPeriod: 5000,
-        connectTimeout: 4000
-    };
-
-    // Use 'wss' for secure WebSocket connection
-    const connectUrl = `wss://${config.mqtt.host}:${config.mqtt.port}/mqtt`;
-
-    const client = mqtt.connect(connectUrl, options);
-
-    client.on('connect', () => {
-        console.log('MQTT Connected');
-        state.mqttClient = client;
-        if (state.currentDevice) {
-            handleDeviceChange();
-        }
-    });
-
-    client.on('reconnect', () => {
-        console.log('Reconnecting...');
-    });
-
-    client.on('error', (err) => {
-        console.error('Connection error:', err);
-        client.end();
-    });
-
-    client.on('message', (topic, message) => {
-        try {
-            const payload = JSON.parse(message.toString());
-            const timestamp = new Date();
-            processFlowData(payload, timestamp);
-            updateDisplays();
-            updateCharts();
-        } catch (err) {
-            console.error('Error processing MQTT message:', err);
-        }
-    });
-}
-
-    // MQTT connection lost handler
-    function onConnectionLost(response) {
-        console.log("MQTT Connection lost:", response.errorMessage);
-        // Attempt to reconnect
-        setTimeout(connectMQTT, 5000);
-    }
-
-    // MQTT message handler
-    function onMessageArrived(message) {
-        try {
-            const payload = JSON.parse(message.payloadString);
-            const timestamp = new Date();
-            
-            // Process the ultrasonic data
-            processFlowData(payload, timestamp);
-            
-            // Update displays and charts
-            updateDisplays();
-            updateCharts();
-        } catch (err) {
-            console.error("Error processing MQTT message:", err);
-        }
-    }
-
-    // Process flow data from MQTT
-    function processFlowData(data, timestamp) {
-    // Extract frequencies in kHz for display and consistency
-    const transmittedFreq = data.transmitted_freq / 1000; // Hz to kHz
-    const receivedFreq = data.received_freq / 1000;       // Hz to kHz
-    const timeOfFlight = data.time_of_flight;             // μs
-
-    // Convert angle to radians
-    const angleRad = (elements.sensorAngleInput.value || config.defaults.sensorAngle) * Math.PI / 180;
-    
-    // Get pipe diameter from input or use default
-    const pipeDiameter = elements.pipeDiameterInput.value || config.defaults.pipeDiameter;
-
-    // Calculate flow rate using Doppler equation (convert kHz to Hz temporarily)
-    const deltaF_Hz = (receivedFreq - transmittedFreq) * 1000;
-    const transmittedFreq_Hz = transmittedFreq * 1000;
-    const flowVelocity = (deltaF_Hz * config.defaults.speedOfSound) / (2 * transmittedFreq_Hz * Math.cos(angleRad));
-
-    // Convert velocity to flow rate (m/s to L/min)
-    const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);  // Use the user's pipe diameter
-    const flowRate = flowVelocity * pipeArea * 60000; // m³/s to L/min
-
-    // Store/display values
-    state.data.timestamps.push(timestamp);
-    state.data.flowRates.push(flowRate);
-    state.data.transmittedFreqs.push(transmittedFreq);
-    state.data.receivedFreqs.push(receivedFreq);
-    state.data.timeOfFlights.push(timeOfFlight);
-
-    // Limit to last 100 data points
-    if (state.data.timestamps.length > 100) {
-        state.data.timestamps.shift();
-        state.data.flowRates.shift();
-        state.data.transmittedFreqs.shift();
-        state.data.receivedFreqs.shift();
-        state.data.timeOfFlights.shift();
-    }
-}
-
-    // Update display elements
-    function updateDisplays() {
-            const lastIndex = state.data.flowRates.length - 1;
-            
-            elements.flowRateDisplay.innerHTML = 
-                state.data.flowRates[lastIndex].toFixed(1) + '<span class="flow-unit">L/min</span>';
-            
-            elements.transmittedFreqDisplay.innerHTML = 
-                state.data.transmittedFreqs[lastIndex].toFixed(1) + '<span class="frequency-unit">kHz</span>';
-            
-            elements.receivedFreqDisplay.innerHTML = 
-                state.data.receivedFreqs[lastIndex].toFixed(1) + '<span class="frequency-unit">kHz</span>';
-            
-            elements.timeOfFlightDisplay.innerHTML = 
-                state.data.timeOfFlights[lastIndex].toFixed(1) + '<span class="frequency-unit">μs</span>';
-        }
-    
-
-    // Update charts with current data
-    function updateCharts() {
-        const formattedTimestamps = state.data.timestamps.map(ts => ts.toLocaleTimeString());
-        
-        // Update Flow Rate Chart
-        state.charts.flowRate.data.labels = formattedTimestamps;
-        state.charts.flowRate.data.datasets[0].data = state.data.flowRates;
-        state.charts.flowRate.update();
-        
-        // Update Frequency Chart
-        state.charts.frequency.data.labels = formattedTimestamps;
-        state.charts.frequency.data.datasets[0].data = state.data.transmittedFreqs;
-        state.charts.frequency.data.datasets[1].data = state.data.receivedFreqs;
-        state.charts.frequency.update();
-    }
-
-    // Save sensor angle to localStorage
-    function saveSensorAngle() {
-        const angle = elements.sensorAngleInput.value;
-        localStorage.setItem('sensorAngle', angle);
-        
-        // Show confirmation
-        const btn = document.querySelector('.angle-set-btn');
+    function saveSetting(key, element, btn) {
+        localStorage.setItem(key, element.value);
+        const originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
         btn.style.background = 'rgba(46, 204, 113, 0.2)';
         btn.style.color = 'var(--success)';
-        
         setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-check"></i> Set';
+            btn.innerHTML = originalHtml;
             btn.style.background = 'rgba(100, 255, 218, 0.2)';
             btn.style.color = 'var(--accent)';
         }, 2000);
     }
 
-    // Date/Time picker functions
-    // ---- helper: parse YYYY-MM-DD as local midnight ----
-function parseDateFromInput(value) {
-    // value looks like "2025-06-03"
-    const parts = value.split('-');
-    return new Date(parts[0], parts[1] - 1, parts[2]); // local tz, no UTC shift
-}
-
-    function initDateTimePickers() {
-        // Initialize date pickers
-        initDatePicker('start-date-calendar', 'report-start-date');
-        initDatePicker('end-date-calendar', 'report-end-date');
-        
-        
-        // Set default dates (now and 1 week ago)
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        
-        document.getElementById('report-start-date').value = oneWeekAgo.toISOString().split('T')[0];
-        document.getElementById('report-start-time').value = '00:00';
-        document.getElementById('report-end-date').value = now.toISOString().split('T')[0];
-        document.getElementById('report-end-time').value = '23:59';
+    function saveSensorAngle() {
+        saveSetting('sensorAngle', elements.sensorAngleInput, document.querySelectorAll('.set-btn')[0]);
     }
-
-    // Initialize a date picker
-    function initDatePicker(calendarId, inputId) {
-        const calendarEl = document.getElementById(calendarId);
-        const inputEl = document.getElementById(inputId);
-        
-        inputEl.addEventListener('click', function(e) {
-            e.stopPropagation();
-            closeAllPickers();
-            calendarEl.style.display = 'block';
-            renderCalendar(calendarEl, inputId);
-        });
-        
-        document.addEventListener('click', function() {
-            calendarEl.style.display = 'none';
-        });
-    }
-
-    // Render calendar
-    function renderCalendar(calendarEl, inputId) {
-        const inputEl = document.getElementById(inputId);
-        // store a persistent date object on the popup element
-if (!calendarEl._currentDate) {
-    calendarEl._currentDate = inputEl.value ? parseDateFromInput(inputEl.value) : new Date();
-}
-const currentDate = calendarEl._currentDate;
-
-        
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        
-        const startingDay = firstDay.getDay();
-        
-        let calendarHTML = `
-            <div class="calendar-header">
-                <span class="calendar-nav prev-month">&lt;</span>
-                <span>${firstDay.toLocaleString('default', { month: 'long' })} ${year}</span>
-                <span class="calendar-nav next-month">&gt;</span>
-            </div>
-            <div class="calendar-grid">
-                <div class="calendar-day-header">Sun</div>
-                <div class="calendar-day-header">Mon</div>
-                <div class="calendar-day-header">Tue</div>
-                <div class="calendar-day-header">Wed</div>
-                <div class="calendar-day-header">Thu</div>
-                <div class="calendar-day-header">Fri</div>
-                <div class="calendar-day-header">Sat</div>
-        `;
-        
-        // Fill in days from previous month
-        // Fill in days from previous month (left padding) — ascending order
-const prevMonthLastDay = new Date(year, month, 0).getDate();
-for (let i = startingDay - 1; i >= 0; i--) {
-    const day = prevMonthLastDay - i;
-    calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
-}
-
-        // Current month days
-        const today = new Date();
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
-            const isToday = date.toDateString() === today.toDateString();
-            const isSelected = inputEl.value && parseDateFromInput(inputEl.value).toDateString() === date.toDateString();
-
-            
-            let dayClass = 'calendar-day';
-            if (isToday) dayClass += ' today';
-            if (isSelected) dayClass += ' selected';
-            
-            calendarHTML += `<div class="${dayClass}" data-day="${day}">${day}</div>`;
-        }
-        
-        // Fill in days from next month
-        const totalCells = startingDay + daysInMonth;
-        const remainingCells = 42 - totalCells;
-        for (let day = 1; day <= remainingCells; day++) {
-            calendarHTML += `<div class="calendar-day other-month">${day}</div>`;
-        }
-        
-        calendarHTML += `</div>`;
-        calendarEl.innerHTML = calendarHTML;
-        
-        // Add event listeners
-        calendarEl.querySelectorAll('.calendar-day:not(.other-month)').forEach(dayEl => {
-            dayEl.addEventListener('click', function() {
-                const day = parseInt(this.getAttribute('data-day'));
-                const selectedDate = new Date(year, month, day);
-                setDateTimeValue(inputId, selectedDate);
-                calendarEl.style.display = 'none';
-            });
-        });
-        
-        // Navigation
-        calendarEl.querySelector('.prev-month').addEventListener('click', function (e) {
-    e.stopPropagation();
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    calendarEl._currentDate = currentDate;      // keep it for next render
-    renderCalendar(calendarEl, inputId);        // re-draw
-});
-
-calendarEl.querySelector('.next-month').addEventListener('click', function (e) {
-    e.stopPropagation();
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    calendarEl._currentDate = currentDate;
-    renderCalendar(calendarEl, inputId);
-});
-
-    }
-
-    // Set date or time value
-    function setDateTimeValue(inputId, date) {
-        const inputEl = document.getElementById(inputId);
-        
-        if (inputId.includes('date')) {
-            inputEl.value = date.toISOString().split('T')[0];
-        } else {
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            inputEl.value = `${hours}:${minutes}`;
-        }
-    }
-
     
-    // Generate and download reports
-    function downloadFrequencyReport() {
-        const startDate = document.getElementById('report-start-date').value;
-        const endDate = document.getElementById('report-end-date').value;
-        const startTime = document.getElementById('report-start-time').value;
-        const endTime = document.getElementById('report-end-time').value;
-        
-        const data = generateReportData('frequency', startDate, endDate, startTime, endTime);
-        downloadCSV(data, `frequency_report_${startDate}_to_${endDate}.csv`);
+    function savePipeDiameter() {
+        saveSetting('pipeDiameter', elements.pipeDiameterInput, document.querySelectorAll('.set-btn')[1]);
     }
 
-    function downloadFlowRateReport() {
-        const startDate = document.getElementById('report-start-date').value;
-        const endDate = document.getElementById('report-end-date').value;
-        const startTime = document.getElementById('report-start-time').value;
-        const endTime = document.getElementById('report-end-time').value;
+    // Handle device selection change with dynamic topic subscription
+    function handleDeviceChange() {
+        const newDevice = elements.deviceSelect.value;
+        const oldDevice = state.currentDevice;
+
+        if (newDevice === oldDevice) return;
+
+        if (oldDevice && state.mqttClient && state.mqttClient.connected) {
+            const oldTopic = config.mqtt.topicBase + oldDevice + '/tof_avg';
+            state.mqttClient.unsubscribe(oldTopic, (err) => {
+                if (err) console.error('Failed to unsubscribe from', oldTopic, err);
+                else console.log('Unsubscribed from', oldTopic);
+            });
+        }
         
-        const data = generateReportData('flowRate', startDate, endDate, startTime, endTime);
-        downloadCSV(data, `flow_rate_report_${startDate}_to_${endDate}.csv`);
+        state.currentDevice = newDevice;
+        resetData(); 
+
+        if (newDevice && state.mqttClient && state.mqttClient.connected) {
+            const newTopic = config.mqtt.topicBase + newDevice + '/tof_avg';
+            state.mqttClient.subscribe(newTopic, (err) => {
+                if (err) console.error('Failed to subscribe to', newTopic, err);
+                else console.log('Subscribed to', newTopic);
+            });
+        }
     }
 
-    function downloadCombinedReport() {
-        const startDate = document.getElementById('report-start-date').value;
-        const endDate = document.getElementById('report-end-date').value;
-        const startTime = document.getElementById('report-start-time').value;
-        const endTime = document.getElementById('report-end-time').value;
-        
-        const data = generateReportData('combined', startDate, endDate, startTime, endTime);
-        downloadCSV(data, `combined_report_${startDate}_to_${endDate}.csv`);
+    // Reset data arrays when switching devices
+    function resetData() {
+        state.data = {
+            timestamps: [], flowRates: [], timeOfFlights: [], flowVelocities: []
+        };
+        updateDisplays();
+        updateCharts();
     }
 
-    // Generate report data
-    function generateReportData(type, startDate, endDate, startTime, endTime) {
+    // Connect to MQTT broker
+    function connectMQTT() {
+        const connectUrl = `wss://${config.mqtt.host}:${config.mqtt.port}/mqtt`;
+        try {
+            const client = mqtt.connect(connectUrl, {
+                clientId: config.mqtt.clientId, clean: true, reconnectPeriod: 5000, connectTimeout: 4000
+            });
+
+            client.on('connect', () => {
+                console.log('MQTT Connected');
+                state.mqttClient = client;
+            });
+
+            client.on('error', (err) => console.error('MQTT Connection error:', err));
+
+            client.on('message', (topic, message) => {
+                try {
+                    const deviceId = topic.split('/')[2];
+                    if (state.currentDevice && deviceId === state.currentDevice) {
+                        const payload = JSON.parse(message.toString());
+                        const tofValue = payload.time_of_flight;
+
+                        if (typeof tofValue === 'number' && !isNaN(tofValue)) {
+                            processTOFData(tofValue, new Date());
+                            updateDisplays();
+                            updateCharts();
+                        } else {
+                            console.error('Invalid TOF value received:', payload);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error processing MQTT message:', err, 'Payload:', message.toString());
+                }
+            });
+        } catch (error) {
+            console.error('Failed to initialize MQTT:', error);
+        }
+    }
+
+    // Process TOF data using live values from input boxes
+    function processTOFData(tofValue, timestamp) {
+        const angleRad = (parseFloat(elements.sensorAngleInput.value) || config.defaults.sensorAngle) * Math.PI / 180;
+        const pipeDiameter = parseFloat(elements.pipeDiameterInput.value) || config.defaults.pipeDiameter;
+        
+        const tofSeconds = tofValue / 1000000; 
+        const speedOfSound = config.defaults.speedOfSound;
+
+        const L = pipeDiameter / Math.cos(angleRad);
+        // This term represents the theoretical time difference caused by flow.
+        const deltaTimeDueToFlow = (2 * pipeDiameter * Math.tan(angleRad) * tofSeconds * tofSeconds) / (L * L);
+        
+        // A more stable formula for velocity based on a single ToF measurement
+        let flowVelocity = (L * L / (2 * pipeDiameter * Math.tan(angleRad))) * (1/ (tofSeconds - deltaTimeDueToFlow) - 1 / tofSeconds);
+        
+        // --- RECTIFICATION ---
+        // This forces the velocity to be positive, fixing the negative flow rate issue
+        // caused by reversed sensors.
+        flowVelocity = Math.abs(flowVelocity);
+
+        const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);
+        let flowRate = flowVelocity * pipeArea * 60000; // Convert from m³/s to L/min
+
+        // Also ensure flow rate is positive, just in case.
+        flowRate = Math.abs(flowRate);
+
+        state.data.timestamps.push(timestamp);
+        state.data.flowRates.push(flowRate);
+        state.data.timeOfFlights.push(tofValue);
+        state.data.flowVelocities.push(flowVelocity);
+
+        if (state.data.timestamps.length > 100) {
+            Object.values(state.data).forEach(arr => arr.shift());
+        }
+    }
+
+    // Update display elements
+    function updateDisplays() {
+        const lastIndex = state.data.flowRates.length - 1;
+        if (lastIndex >= 0) {
+            elements.flowRateDisplay.innerHTML = `${state.data.flowRates[lastIndex].toFixed(1)}<span class="flow-unit">L/min</span>`;
+            elements.timeOfFlightDisplay.innerHTML = `${state.data.timeOfFlights[lastIndex].toFixed(1)}<span class="frequency-unit">μs</span>`;
+            elements.flowVelocityDisplay.innerHTML = `${state.data.flowVelocities[lastIndex].toFixed(3)}<span class="frequency-unit">m/s</span>`;
+        } else {
+             elements.flowRateDisplay.innerHTML = `0.0<span class="flow-unit">L/min</span>`;
+             elements.timeOfFlightDisplay.innerHTML = `0.0<span class="frequency-unit">μs</span>`;
+             elements.flowVelocityDisplay.innerHTML = `0.0<span class="frequency-unit">m/s</span>`;
+        }
+    }
+
+    // Update charts
+    function updateCharts() {
+        const formattedTimestamps = state.data.timestamps.map(ts => ts.toLocaleTimeString());
+        
+        state.charts.flowRate.data.labels = formattedTimestamps;
+        state.charts.flowRate.data.datasets[0].data = state.data.flowRates;
+        state.charts.flowRate.update();
+    }
+
+    // Start demo mode if MQTT fails
+    function startDemoMode() {
+        if (state.demoInterval) clearInterval(state.demoInterval);
+        state.demoInterval = setInterval(() => {
+            if (!state.currentDevice) {
+                const tofValue = 75 + (Math.random() * 20 - 10);
+                processTOFData(tofValue, new Date());
+                updateDisplays();
+                updateCharts();
+            }
+        }, 2000);
+    }
+
+    // Date/Time picker functions
+    function initDateTimePickers() {
+        const commonOptions = {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+        };
+        flatpickr("#report-start-date", { ...commonOptions, defaultDate: new Date().fp_incr(-7) });
+        flatpickr("#report-end-date", { ...commonOptions, defaultDate: "today" });
+    }
+
+    // Report generation functions
+    function downloadReport(type) {
+        const startDate = document.getElementById('report-start-date').value;
+        const startTime = document.getElementById('report-start-time').value;
+        const endDate = document.getElementById('report-end-date').value;
+        const endTime = document.getElementById('report-end-time').value;
+
+        let headers, rows;
+        if (type === 'flowRate') headers = ['Timestamp', 'Flow Rate (L/min)'];
+        else headers = ['Timestamp', 'Flow Rate (L/min)', 'Time of Flight (μs)'];
+        rows = [headers];
+
         const start = new Date(`${startDate}T${startTime}`);
         const end = new Date(`${endDate}T${endTime}`);
-        
-        let headers, rows;
-        
-        switch (type) {
-            case 'frequency':
-                headers = ['Timestamp', 'Transmitted Frequency (kHz)', 'Received Frequency (kHz)', 'Time of Flight (μs)'];
-                break;
-            case 'flowRate':
-                headers = ['Timestamp', 'Flow Rate (L/min)'];
-                break;
-            case 'combined':
-                headers = ['Timestamp', 'Flow Rate (L/min)', 'Transmitted Freq (kHz)', 'Received Freq (kHz)', 'Time of Flight (μs)'];
-                break;
-            default:
-                headers = [];
-        }
-        
-        rows = [headers];
-        
-        // Generate sample data (in a real app, this would fetch from your database)
         for (let d = new Date(start); d <= end; d.setMinutes(d.getMinutes() + 5)) {
+            const tofValue = (Math.random() * 100 + 50).toFixed(2);
+            const flowRate = (Math.random() * 50 + 10).toFixed(2);
             const row = [d.toISOString()];
-            
-            if (type === 'frequency' || type === 'combined') {
-                const transmittedFreq = (Math.random() * 500 + 1000).toFixed(2);
-                const receivedFreq = (parseFloat(transmittedFreq) + (Math.random() * 20 - 10)).toFixed(2);
-                const timeOfFlight = (Math.random() * 100 + 50).toFixed(2);
-                
-                if (type === 'frequency') {
-                    row.push(transmittedFreq, receivedFreq, timeOfFlight);
-                } else {
-                    const flowRate = (Math.random() * 30 + 5).toFixed(2);
-                    row.push(flowRate, transmittedFreq, receivedFreq, timeOfFlight);
-                }
-            } else {
-                const flowRate = (Math.random() * 30 + 5).toFixed(2);
-                row.push(flowRate);
-            }
-            
+            if (type === 'flowRate') row.push(flowRate);
+            else row.push(flowRate, tofValue);
             rows.push(row);
         }
-        
-        return rows;
-    }
 
-    // Download CSV file
-    function downloadCSV(data, filename) {
-        const csvContent = data.map(row => 
-            row.map(cell => `"${cell}"`).join(',')
-        ).join('\n');
-        
+        const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        link.href = URL.createObjectURL(blob);
+        link.download = `${type}_report_${startDate}_to_${endDate}.csv`;
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     // Public API
-return {
-    init: init,
-    saveSensorAngle: saveSensorAngle,
-    savePipeDiameter: savePipeDiameter,  // Add this line
-    downloadFrequencyReport: downloadFrequencyReport,
-    downloadFlowRateReport: downloadFlowRateReport,
-    downloadCombinedReport: downloadCombinedReport
-};
+    return {
+        init: init,
+        saveSensorAngle: saveSensorAngle,
+        savePipeDiameter: savePipeDiameter,
+        downloadFlowRateReport: () => downloadReport('flowRate'),
+        downloadCombinedReport: () => downloadReport('combined')
+    };
 })();
 
-document.addEventListener("DOMContentLoaded", function () {
-    flatpickr("#report-start-date", {
-        altInput: true,
-        altFormat: "F j, Y",
-        dateFormat: "Y-m-d",
-        onChange: function(selectedDates, dateStr, instance) {
-            console.log("Start date selected:", dateStr);
-        }
-    });
-
-    flatpickr("#report-end-date", {
-        altInput: true,
-        altFormat: "F j, Y",
-        dateFormat: "Y-m-d",
-        onChange: function(selectedDates, dateStr, instance) {
-            console.log("End date selected:", dateStr);
-        }
-    });
-
-    flatpickr("#report-start-time", {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: "H:i",
-        time_24hr: true
-    });
-
-    flatpickr("#report-end-time", {
-        enableTime: true,
-        noCalendar: true,
-        dateFormat: "H:i",
-        time_24hr: true
-    });
-});
-
-// Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', FlowSense.init);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
-

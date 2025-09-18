@@ -664,61 +664,41 @@
 </div>
                 
                 <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-water"></i>
-                            Flow Rate Monitoring
-                        </h2>
-                    </div>
-                    <div class="flow-display">
-                        <div class="flow-rate-display">
-                            <div class="flow-rate" id="current-flow-rate">0.0<span class="flow-unit">L/min</span></div>
-                            <div>Current Flow Rate</div>
-                        </div>
-                        <div class="frequency-display">
-                            <div class="frequency-value">
-                                <div class="frequency-label">Transmitted Frequency</div>
-                                <div class="frequency-number" id="transmitted-freq">0.0<span class="frequency-unit">kHz</span></div>
-                            </div>
-                            <div class="frequency-value">
-                                <div class="frequency-label">Received Frequency</div>
-                                <div class="frequency-number" id="received-freq">0.0<span class="frequency-unit">kHz</span></div>
-                            </div>
-                            <div class="frequency-value">
-                                <div class="frequency-label">Time of Flight</div>
-                                <div class="frequency-number" id="time-of-flight">0.0<span class="frequency-unit">μs</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card" style="grid-column: 1 / -1;">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-chart-area"></i>
-                            Monitoring Charts
-                        </h2>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <div>
-                            <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">
-                                <i class="fas fa-chart-line"></i> Flow Rate Trend
-                            </h3>
-                            <div class="graph-container">
-                                <canvas id="flowRateChart"></canvas>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">
-                                <i class="fas fa-wave-square"></i> Frequency Trends
-                            </h3>
-                            <div class="graph-container">
-                                <canvas id="frequencyChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-water"></i>
+            Flow Rate Monitoring
+        </h2>
+    </div>
+    <div class="flow-display">
+        <div class="flow-rate-display">
+            <div class="flow-rate" id="current-flow-rate">0.0<span class="flow-unit">L/min</span></div>
+            <div>Current Flow Rate</div>
+        </div>
+        <div class="frequency-display">
+            <div class="frequency-value">
+                <div class="frequency-label">Time of Flight</div>
+                <div class="frequency-number" id="time-of-flight">0.0<span class="frequency-unit">μs</span></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="grid-column: 1 / -1;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-chart-area"></i>
+            Monitoring Chart
+        </h2>
+    </div>
+    <div class="graph-container" style="margin-top: 1rem;">
+        <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">
+            <i class="fas fa-chart-line"></i> Flow Rate Trend
+        </h3>
+        <canvas id="flowRateChart"></canvas>
+    </div>
+</div>
+
             
             <!-- Reports Section -->
             <div id="reports-page" class="page-content">
@@ -1736,3 +1716,4 @@ document.addEventListener('DOMContentLoaded', FlowSense.init);
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
+

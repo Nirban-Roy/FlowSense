@@ -217,7 +217,7 @@
     }
     
     .flow-rate {
-        font-size: 3.5rem;
+        font-size: 4rem;
         font-weight: bold;
         margin: 0.5rem 0;
         background: linear-gradient(to right, var(--primary), var(--accent));
@@ -272,7 +272,7 @@
         align-items: center;
         margin-bottom: 0.5rem;
         color: var(--accent);
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
     .select-wrapper {
@@ -326,7 +326,7 @@
         align-items: center;
         margin-bottom: 0.5rem;
         color: var(--accent);
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
     .input-group label i {
@@ -393,7 +393,7 @@
     }
 
     .date-input-group label {
-        font-size: 0.9rem;
+        font-size: 1rem;
         color: var(--accent);
     }
 
@@ -459,6 +459,37 @@
     .page-content.active {
         display: block;
     }
+
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        background: rgba(10, 25, 47, 0.5);
+        font-size: 0.9rem;
+        margin-left: auto;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-connected {
+        background-color: var(--success);
+    }
+
+    .status-disconnected {
+        background-color: var(--warning);
+    }
+
+    .status-demo {
+        background-color: var(--primary);
+    }
+    
     @media (max-width: 768px) {
         .container {
             grid-template-columns: 1fr;
@@ -516,8 +547,12 @@
     <div class="container">
         <header>
             <div class="logo">
-                <img src="logo.png" alt="IEMA Logo">
+                <img src="E:\iema codes\iema_flowsense\IEMA trademark logo.jpg" alt="IEMA Logo">
                 <h1>FlowSense</h1>
+            </div>
+            <div class="status-indicator">
+                <span class="status-dot status-demo" id="connection-status"></span>
+                <span id="connection-text">Demo Mode</span>
             </div>
             <button class="sidebar-toggle" id="sidebarToggle">
                 <i class="fas fa-times" id="toggleIcon"></i>
@@ -557,7 +592,7 @@
                         <div class="select-wrapper">
                             <select id="device-select">
                                 <option value="">-- Select a Device --</option>
-                                <option value="device1">FLOW-001 (Main Pipeline)</option>
+                                <option value="device1" selected>FLOW-001 (Main Pipeline)</option>
                                 <option value="device2">FLOW-002 (Cooling System)</option>
                                 <option value="device3">FLOW-003 (Inlet Valve)</option>
                             </select>
@@ -689,6 +724,14 @@
                 <div class="card">
                     <div class="card-header"><h2 class="card-title"><i class="fas fa-info-circle"></i> About FlowSense</h2></div>
                     <p style="margin-top: 1rem;">FlowSense represents the cutting edge in ultrasonic flow measurement technology, delivering unparalleled accuracy in flow monitoring.</p>
+                    <div class="guide-step">
+                        <h4><span class="step-number">1</span>Technology</h4>
+                        <p>FlowSense uses advanced Time-of-Flight (TOF) measurement with TDC7200 precision timer for accurate flow monitoring.</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4><span class="step-number">2</span>Applications</h4>
+                        <p>Ideal for industrial process control, water management, HVAC systems, and any application requiring precise liquid flow measurement.</p>
+                    </div>
                 </div>
             </div>
             <div id="overview-page" class="page-content">
@@ -701,6 +744,10 @@
                     <div class="guide-step">
                         <h4><span class="step-number">2</span>Device Selection & Monitoring</h4>
                         <p>Use the dropdown to switch between devices. Real-time Flow Rate, Time of Flight, and Flow Velocity will be displayed and charted automatically.</p>
+                    </div>
+                    <div class="guide-step">
+                        <h4><span class="step-number">3</span>Troubleshooting</h4>
+                        <p>If no data is received from devices, the system will automatically enter demo mode. Check your MQTT connection and device status if this occurs.</p>
                     </div>
                 </div>
             </div>
@@ -726,7 +773,7 @@ const FlowSense = (function() {
 
     // Application state
     let state = {
-        currentDevice: null,
+        currentDevice: 'device1',
         mqttClient: null,
         charts: {
             flowRate: null,
@@ -737,6 +784,7 @@ const FlowSense = (function() {
             timeOfFlights: [],
             flowVelocities: []
         },
+        connectionStatus: 'demo', // 'connected', 'disconnected', 'demo'
     };
 
     // DOM Elements
@@ -746,7 +794,9 @@ const FlowSense = (function() {
         flowVelocityDisplay: document.getElementById('flow-velocity'),
         sensorAngleInput: document.getElementById('sensor-angle'),
         pipeDiameterInput: document.getElementById('pipe-diameter'),
-        deviceSelect: document.getElementById('device-select')
+        deviceSelect: document.getElementById('device-select'),
+        connectionStatus: document.getElementById('connection-status'),
+        connectionText: document.getElementById('connection-text')
     };
 
     // Initialize the application
@@ -755,7 +805,11 @@ const FlowSense = (function() {
         setupNavigation();
         setupEventListeners();
         loadSavedSettings();
+        updateConnectionStatus('demo');
         connectMQTT();
+        
+        // Set default device
+        elements.deviceSelect.value = state.currentDevice;
         
         setTimeout(() => {
             if (!state.mqttClient || !state.mqttClient.connected) {
@@ -765,16 +819,75 @@ const FlowSense = (function() {
         }, 5000);
     }
 
+    // Update connection status UI
+    function updateConnectionStatus(status) {
+        state.connectionStatus = status;
+        elements.connectionStatus.className = 'status-dot';
+        
+        switch(status) {
+            case 'connected':
+                elements.connectionStatus.classList.add('status-connected');
+                elements.connectionText.textContent = 'Connected';
+                break;
+            case 'disconnected':
+                elements.connectionStatus.classList.add('status-disconnected');
+                elements.connectionText.textContent = 'Disconnected';
+                break;
+            case 'demo':
+                elements.connectionStatus.classList.add('status-demo');
+                elements.connectionText.textContent = 'Demo Mode';
+                break;
+        }
+    }
+
     // Initialize charts
     function initCharts() {
         const flowRateCtx = document.getElementById('flowRateChart').getContext('2d');
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#fff' } } },
-            scales: {
-                y: { beginAtZero: true, ticks: { color: '#fff' }, title: { display: true, color: '#fff', text: 'Flow Rate (L/min)' }, grid: { color: 'rgba(255,255,255,0.07)' } },
-                x: { ticks: { color: '#fff' }, grid: { display: false } }
+            plugins: { 
+                legend: { 
+                    labels: { 
+                        color: '#fff',
+                        font: {
+                            size: 12
+                        }
+                    } 
+                } 
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    ticks: { 
+                        color: '#fff',
+                        font: {
+                            size: 11
+                        }
+                    }, 
+                    title: { 
+                        display: true, 
+                        color: '#fff', 
+                        text: 'Flow Rate (L/min)',
+                        font: {
+                            size: 12
+                        }
+                    }, 
+                    grid: { 
+                        color: 'rgba(255,255,255,0.07)' 
+                    } 
+                }, 
+                x: { 
+                    ticks: { 
+                        color: '#fff',
+                        font: {
+                            size: 11
+                        }
+                    }, 
+                    grid: { 
+                        display: false 
+                    } 
+                } 
             }
         };
 
@@ -783,7 +896,13 @@ const FlowSense = (function() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Flow Rate (L/min)', data: [], borderColor: '#00c6ff', backgroundColor: 'rgba(0, 198, 255, 0.1)', borderWidth: 2, tension: 0.3, fill: true
+                    label: 'Flow Rate (L/min)', 
+                    data: [], 
+                    borderColor: '#00c6ff', 
+                    backgroundColor: 'rgba(0, 198, 255, 0.1)', 
+                    borderWidth: 2, 
+                    tension: 0.3, 
+                    fill: true
                 }]
             },
             options: chartOptions
@@ -813,6 +932,24 @@ const FlowSense = (function() {
     function setupEventListeners() {
         elements.deviceSelect.addEventListener('change', handleDeviceChange);
         initDateTimePickers();
+        
+        // Add input change listeners for real-time updates
+        elements.sensorAngleInput.addEventListener('change', recalculateFlowData);
+        elements.pipeDiameterInput.addEventListener('change', recalculateFlowData);
+    }
+
+    // Recalculate all flow data when parameters change
+    function recalculateFlowData() {
+        if (state.data.timeOfFlights.length > 0) {
+            const lastIndex = state.data.timeOfFlights.length - 1;
+            const tofValue = state.data.timeOfFlights[lastIndex];
+            const timestamp = state.data.timestamps[lastIndex];
+            
+            // Recalculate with new parameters
+            processTOFData(tofValue, timestamp);
+            updateDisplays();
+            updateCharts();
+        }
     }
 
     // Load saved settings from localStorage
@@ -832,6 +969,9 @@ const FlowSense = (function() {
             btn.style.background = 'rgba(100, 255, 218, 0.2)';
             btn.style.color = 'var(--accent)';
         }, 2000);
+        
+        // Recalculate with new settings
+        recalculateFlowData();
     }
 
     function saveSensorAngle() {
@@ -866,6 +1006,9 @@ const FlowSense = (function() {
                 if (err) console.error('Failed to subscribe to', newTopic, err);
                 else console.log('Subscribed to', newTopic);
             });
+        } else if (newDevice) {
+            // If MQTT not connected but device selected, restart demo mode
+            startDemoMode();
         }
     }
 
@@ -883,15 +1026,48 @@ const FlowSense = (function() {
         const connectUrl = `wss://${config.mqtt.host}:${config.mqtt.port}/mqtt`;
         try {
             const client = mqtt.connect(connectUrl, {
-                clientId: config.mqtt.clientId, clean: true, reconnectPeriod: 5000, connectTimeout: 4000
+                clientId: config.mqtt.clientId, 
+                clean: true, 
+                reconnectPeriod: 5000, 
+                connectTimeout: 4000
             });
 
             client.on('connect', () => {
                 console.log('MQTT Connected');
                 state.mqttClient = client;
+                updateConnectionStatus('connected');
+                
+                // Subscribe to current device topic
+                if (state.currentDevice) {
+                    const topic = config.mqtt.topicBase + state.currentDevice + '/tof_avg';
+                    client.subscribe(topic, (err) => {
+                        if (err) {
+                            console.error('Failed to subscribe to', topic, err);
+                        } else {
+                            console.log('Subscribed to', topic);
+                            if (state.demoInterval) {
+                                clearInterval(state.demoInterval);
+                                state.demoInterval = null;
+                            }
+                        }
+                    });
+                }
             });
 
-            client.on('error', (err) => console.error('MQTT Connection error:', err));
+            client.on('error', (err) => {
+                console.error('MQTT Connection error:', err);
+                updateConnectionStatus('disconnected');
+            });
+            
+            client.on('close', () => {
+                console.log('MQTT Connection closed');
+                updateConnectionStatus('disconnected');
+            });
+            
+            client.on('reconnect', () => {
+                console.log('MQTT Reconnecting...');
+                updateConnectionStatus('disconnected');
+            });
 
             client.on('message', (topic, message) => {
                 try {
@@ -914,6 +1090,8 @@ const FlowSense = (function() {
             });
         } catch (error) {
             console.error('Failed to initialize MQTT:', error);
+            updateConnectionStatus('disconnected');
+            startDemoMode();
         }
     }
 
@@ -922,26 +1100,30 @@ const FlowSense = (function() {
         const angleRad = (parseFloat(elements.sensorAngleInput.value) || config.defaults.sensorAngle) * Math.PI / 180;
         const pipeDiameter = parseFloat(elements.pipeDiameterInput.value) || config.defaults.pipeDiameter;
         
-        const tofSeconds = tofValue / 1000000; 
-        const speedOfSound = config.defaults.speedOfSound;
-
+        // Calculate the path length between sensors
         const L = pipeDiameter / Math.cos(angleRad);
-        // This term represents the theoretical time difference caused by flow.
-        const deltaTimeDueToFlow = (2 * pipeDiameter * Math.tan(angleRad) * tofSeconds * tofSeconds) / (L * L);
         
-        // A more stable formula for velocity based on a single ToF measurement
-        let flowVelocity = (L * L / (2 * pipeDiameter * Math.tan(angleRad))) * (1/ (tofSeconds - deltaTimeDueToFlow) - 1 / tofSeconds);
+        // Calculate the speed of sound in the medium (water)
+        const speedOfSound = config.defaults.speedOfSound;
         
-        // --- RECTIFICATION ---
-        // This forces the velocity to be positive, fixing the negative flow rate issue
-        // caused by reversed sensors.
+        // Calculate time of flight difference due to flow
+        // This formula is based on the ultrasonic flow measurement principle
+        const deltaT = (2 * L * Math.sin(angleRad)) / (speedOfSound * speedOfSound);
+        
+        // Calculate flow velocity
+        //let flowVelocity = (tofValue / 1000000) * (speedOfSound * speedOfSound) / (2 * L * Math.cos(angleRad));
+        if (Math.abs(Math.cos(angleRad)) < 1e-6) {
+            flowVelocity = 0;
+        } else {
+            flowVelocity = (tofValue / 1e6) * (speedOfSound * speedOfSound) / (2 * L * Math.cos(angleRad));
+        }
+
+        // Ensure flow velocity is positive
         flowVelocity = Math.abs(flowVelocity);
-
+        
+        // Calculate flow rate (convert m³/s to L/min)
         const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);
-        let flowRate = flowVelocity * pipeArea * 60000; // Convert from m³/s to L/min
-
-        // Also ensure flow rate is positive, just in case.
-        flowRate = Math.abs(flowRate);
+        let flowRate = flowVelocity * pipeArea * 60000; 
 
         state.data.timestamps.push(timestamp);
         state.data.flowRates.push(flowRate);
@@ -980,7 +1162,7 @@ const FlowSense = (function() {
     function startDemoMode() {
         if (state.demoInterval) clearInterval(state.demoInterval);
         state.demoInterval = setInterval(() => {
-            if (!state.currentDevice) {
+            if (state.connectionStatus !== 'connected') {
                 const tofValue = 75 + (Math.random() * 20 - 10);
                 processTOFData(tofValue, new Date());
                 updateDisplays();
@@ -1006,9 +1188,14 @@ const FlowSense = (function() {
         const endDate = document.getElementById('report-end-date').value;
         const endTime = document.getElementById('report-end-time').value;
 
+        if (!startDate || !endDate) {
+            alert('Please select both start and end dates');
+            return;
+        }
+
         let headers, rows;
         if (type === 'flowRate') headers = ['Timestamp', 'Flow Rate (L/min)'];
-        else headers = ['Timestamp', 'Flow Rate (L/min)', 'Time of Flight (μs)'];
+        else headers = ['Timestamp', 'Flow Rate (L/min)', 'Time of Flight (μs)', 'Flow Velocity (m/s)'];
         rows = [headers];
 
         const start = new Date(`${startDate}T${startTime}`);
@@ -1016,9 +1203,10 @@ const FlowSense = (function() {
         for (let d = new Date(start); d <= end; d.setMinutes(d.getMinutes() + 5)) {
             const tofValue = (Math.random() * 100 + 50).toFixed(2);
             const flowRate = (Math.random() * 50 + 10).toFixed(2);
+            const flowVelocity = (Math.random() * 2 + 0.5).toFixed(3);
             const row = [d.toISOString()];
             if (type === 'flowRate') row.push(flowRate);
-            else row.push(flowRate, tofValue);
+            else row.push(flowRate, tofValue, flowVelocity);
             rows.push(row);
         }
 

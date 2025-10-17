@@ -760,7 +760,7 @@ const FlowSense = (function() {
     const config = {
         mqtt: {
             host: 'test.mosquitto.org',
-            port: 8081, // Secure WebSocket port for browsers
+            port: 8080, // Secure WebSocket port for browsers
             clientId: 'FlowSenseWebClient_' + Math.random().toString(16).substring(2, 8),
             topicBase: 'flowsense/device/',
         },
@@ -1236,4 +1236,5 @@ document.addEventListener('DOMContentLoaded', FlowSense.init);
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
+
 

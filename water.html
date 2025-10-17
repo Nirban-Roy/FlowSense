@@ -8,8 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<style>
+    <style>
     :root {
         --primary: #00c6ff;
         --secondary: #0072ff;
@@ -19,13 +20,22 @@
         --accent: #64ffda;
         --warning: #ff5e57;
         --success: #2ecc71;
+        --card-bg: rgba(10, 25, 47, 0.7);
+        --sidebar-bg: rgba(2, 12, 27, 0.85);
+        --header-bg: rgba(10, 25, 47, 0.95);
+        --border-radius: 12px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    html {
+        scroll-behavior: smooth;
     }
     
     body {
@@ -33,14 +43,16 @@
         color: var(--light);
         min-height: 100vh;
         overflow-x: hidden;
+        line-height: 1.6;
     }
     
     .container {
         display: grid;
-        grid-template-columns: 250px 1fr;
+        grid-template-columns: minmax(250px, 300px) 1fr;
         grid-template-rows: 70px 1fr;
         min-height: 100vh;
-        transition: all 0.3s ease;
+        transition: var(--transition);
+        gap: 0;
     }
 
     .container.sidebar-collapsed {
@@ -48,50 +60,61 @@
     }
     
     header {
-        grid-column: 1 / 3;
-        background: rgba(10, 25, 47, 0.8);
-        backdrop-filter: blur(10px);
+        grid-column: 1 / -1;
+        background: var(--header-bg);
+        backdrop-filter: blur(20px);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 2rem;
+        padding: 0 clamp(1rem, 3vw, 2rem);
         border-bottom: 1px solid rgba(100, 255, 218, 0.1);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        z-index: 10;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        z-index: 1000;
+        position: sticky;
+        top: 0;
     }
     
     .logo {
         display: flex;
         align-items: center;
         gap: 1rem;
+        flex-shrink: 0;
     }
     
     .logo img {
         height: 40px;
+        width: 40px;
+        border-radius: 8px;
+        object-fit: cover;
     }
     
     .logo h1 {
-        font-size: 1.5rem;
-        background: linear-gradient(to right, var(--primary), var(--accent));
+        font-size: clamp(1.2rem, 2vw, 1.5rem);
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 700;
+        font-weight: 800;
+        letter-spacing: -0.5px;
     }
     
     aside {
-        background: rgba(2, 12, 27, 0.7);
-        backdrop-filter: blur(5px);
+        background: var(--sidebar-bg);
+        backdrop-filter: blur(15px);
         border-right: 1px solid rgba(100, 255, 218, 0.1);
         padding: 2rem 0;
-        transition: all 0.3s ease;
+        transition: var(--transition);
         overflow: hidden;
         position: relative;
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+        z-index: 100;
     }
 
     .sidebar-menu {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        width: 100%;
     }
 
     .sidebar-toggle {
@@ -99,51 +122,62 @@
         top: 1rem;
         right: 1rem;
         background: rgba(100, 255, 218, 0.1);
-        border: 1px solid rgba(100, 255, 218, 0.2);
+        border: 1px solid rgba(100, 255, 218, 0.3);
         color: var(--accent);
         width: 40px;
         height: 40px;
-        border-radius: 5px;
+        border-radius: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: var(--transition);
         z-index: 10;
     }
 
     .sidebar-toggle:hover {
         background: rgba(100, 255, 218, 0.2);
+        transform: scale(1.1) rotate(90deg);
+        box-shadow: 0 5px 15px rgba(100, 255, 218, 0.2);
     }
 
     .sidebar-collapsed .menu-item span {
         opacity: 0;
         width: 0;
         overflow: hidden;
+        margin-left: 0;
     }
 
     .menu-item span {
-        transition: all 0.3s ease;
+        transition: var(--transition);
+        font-weight: 500;
+        margin-left: 0;
+        white-space: nowrap;
     }
     
     .menu-item {
-        padding: 0.8rem 1.5rem;
+        padding: 1rem 1.5rem;
         display: flex;
         align-items: center;
         gap: 1rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: var(--transition);
         position: relative;
         overflow: hidden;
+        border-radius: 0 12px 12px 0;
+        margin: 0 8px 4px 0;
+        border: none;
     }
     
     .menu-item:hover {
-        background: rgba(100, 255, 218, 0.1);
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.15), transparent);
+        transform: translateX(5px);
     }
     
     .menu-item.active {
-        background: rgba(100, 255, 218, 0.2);
-        border-left: 3px solid var(--accent);
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.2), transparent);
+        border-left: 4px solid var(--accent);
+        box-shadow: inset 0 0 20px rgba(100, 255, 218, 0.1);
     }
     
     .menu-item.active::before {
@@ -154,34 +188,81 @@
         width: 100%;
         height: 100%;
         background: linear-gradient(90deg, rgba(100, 255, 218, 0.1), transparent);
+        animation: shimmer 3s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.7; }
     }
     
     .menu-item i {
         color: var(--accent);
         width: 20px;
         text-align: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
     }
     
     main {
-        padding: 2rem;
+        padding: clamp(1rem, 2vw, 2rem);
         overflow-y: auto;
         height: calc(100vh - 70px);
+        background: rgba(2, 12, 27, 0.3);
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent) transparent;
+    }
+
+    main::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    main::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    main::-webkit-scrollbar-thumb {
+        background: var(--accent);
+        border-radius: 10px;
     }
     
     .card {
-        background: rgba(10, 25, 47, 0.6);
-        backdrop-filter: blur(10px);
-        border-radius: 10px;
-        border: 1px solid rgba(100, 255, 218, 0.1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        padding: 1.5rem;
-        transition: all 0.3s ease;
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: clamp(1.25rem, 2vw, 1.5rem);
+        transition: var(--transition);
         margin-bottom: 1.5rem;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.05), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .card:hover::before {
+        left: 100%;
     }
     
     .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(100, 255, 218, 0.2);
+        border-color: rgba(100, 255, 218, 0.3);
     }
     
     .card-header {
@@ -189,13 +270,25 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
-        padding-bottom: 0.8rem;
+        padding-bottom: 1rem;
         border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        position: relative;
+    }
+
+    .card-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        border-radius: 2px;
     }
     
     .card-title {
-        font-size: 1.1rem;
-        font-weight: 500;
+        font-size: clamp(1rem, 1.5vw, 1.1rem);
+        font-weight: 700;
         color: var(--accent);
         display: flex;
         align-items: center;
@@ -203,76 +296,167 @@
     }
     
     .card-title i {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
     }
     
     .flow-display {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
+        width: 100%;
     }
     
     .flow-rate-display {
         text-align: center;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), transparent);
+        border-radius: var(--border-radius);
+        padding: 2rem 1.5rem;
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        transition: var(--transition);
+    }
+
+    .flow-rate-display:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 198, 255, 0.1);
+    }
+    
+    .flow-rate-display::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+        background-size: 200% 100%;
+        animation: gradientFlow 3s ease infinite;
+    }
+
+    @keyframes gradientFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
     
     .flow-rate {
-        font-size: 4rem;
-        font-weight: bold;
-        margin: 0.5rem 0;
-        background: linear-gradient(to right, var(--primary), var(--accent));
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 900;
+        margin: 1rem 0;
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        line-height: 1;
+    }
+
+    #current-flow-rate-value, #demo-current-flow-rate-value {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(0, 198, 255, 0.5);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
     }
     
     .flow-unit {
-        font-size: 1.2rem;
-        opacity: 0.7;
-        margin-left: 0.3rem;
+        font-size: clamp(1rem, 2vw, 1.3rem);
+        opacity: 0.9;
+        color: var(--light);
+        -webkit-text-fill-color: var(--light);
+        font-weight: 500;
     }
     
     .frequency-display {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
+        width: 100%;
     }
     
     .frequency-value {
         text-align: center;
-        flex: 1;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.25), transparent);
+        border-radius: var(--border-radius);
+        padding: 1.5rem 1rem;
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        transition: var(--transition);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .frequency-value::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.05), transparent);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .frequency-value:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border-color: rgba(100, 255, 218, 0.3);
+    }
+
+    .frequency-value:hover::before {
+        opacity: 1;
     }
     
     .frequency-label {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--accent);
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .frequency-number {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+        font-weight: 800;
+        color: var(--light);
+        margin-bottom: 0.25rem;
     }
     
     .frequency-unit {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         opacity: 0.7;
+        font-weight: 500;
     }
     
     .graph-container {
-        height: 300px;
+        height: min(400px, 40vh);
         margin-top: 1rem;
+        width: 100%;
+        position: relative;
     }
     
     .custom-select {
         margin-bottom: 1.5rem;
+        width: 100%;
     }
 
     .custom-select label {
         display: flex;
         align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         color: var(--accent);
         font-size: 1rem;
+        font-weight: 600;
     }
 
     .select-wrapper {
@@ -285,175 +469,259 @@
         -webkit-appearance: none;
         -moz-appearance: none;
         width: 100%;
-        background: rgba(10, 25, 47, 0.8);
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.9), rgba(2, 12, 27, 0.8));
         border: 1px solid rgba(100, 255, 218, 0.3);
-        color: white;
-        padding: 0.8rem 1rem;
-        border-radius: 6px;
+        color: var(--accent);
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
         outline: none;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
+        transition: var(--transition);
+        font-size: 1rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
+    }
+
+    /* FIXED: Make dropdown options visible with dark background */
+    .select-wrapper select option {
+        background: var(--darker);
+        color: var(--light);
+        padding: 12px;
+        font-size: 1rem;
+        border: none;
     }
 
     .select-wrapper select:hover {
         border-color: var(--accent);
-        box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.1);
+        box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.15);
+        transform: translateY(-2px);
     }
 
     .select-wrapper select:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.2);
+        box-shadow: 0 0 0 4px rgba(100, 255, 218, 0.2);
+        transform: translateY(-2px);
     }
 
     .select-arrow {
         position: absolute;
         top: 50%;
-        right: 1rem;
+        right: 1.25rem;
         transform: translateY(-50%);
         pointer-events: none;
         color: var(--accent);
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+
+    .select-wrapper:hover .select-arrow {
+        transform: translateY(-50%) scale(1.1);
     }
 
     .input-group {
         margin-bottom: 1.5rem;
-        padding: 0 1rem;
+        padding: 0 0.5rem;
+        width: 100%;
     }
 
     .input-group label {
         display: flex;
         align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         color: var(--accent);
         font-size: 1rem;
+        font-weight: 600;
     }
 
     .input-group label i {
-        margin-right: 8px;
+        margin-right: 10px;
         width: 20px;
         text-align: center;
+        font-size: 1.1rem;
     }
 
     .input-wrapper {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         align-items: center;
+        width: 100%;
     }
 
     .input-wrapper input {
         flex: 1;
-        background: rgba(10, 25, 47, 0.6);
-        border: 1px solid rgba(100, 255, 218, 0.2);
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.7), rgba(2, 12, 27, 0.6));
+        border: 1px solid rgba(100, 255, 218, 0.25);
         color: white;
-        padding: 12px 15px;
-        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
         font-size: 1rem;
-        transition: all 0.3s ease;
-        height: 44px;
+        transition: var(--transition);
+        height: 52px;
+        min-width: 0;
+        backdrop-filter: blur(10px);
+        font-weight: 500;
     }
 
     .input-wrapper input:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
-        background: rgba(10, 25, 47, 0.8);
-        outline: none;
+        box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.15);
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.9), rgba(2, 12, 27, 0.8));
+        transform: translateY(-2px);
+    }
+
+    .input-wrapper input::placeholder {
+        color: rgba(204, 214, 246, 0.5);
+        font-weight: 400;
     }
 
     .set-btn {
-        background: rgba(100, 255, 218, 0.2);
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.2), rgba(0, 198, 255, 0.2));
         color: var(--accent);
-        border: none;
-        padding: 0 20px;
-        height: 44px;
-        border-radius: 8px;
+        border: 1px solid rgba(100, 255, 218, 0.3);
+        padding: 0 1.5rem;
+        height: 52px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: var(--transition);
         display: flex;
         align-items: center;
         gap: 8px;
         white-space: nowrap;
+        font-weight: 600;
+        flex-shrink: 0;
+        backdrop-filter: blur(10px);
     }
 
     .set-btn:hover {
-        background: rgba(100, 255, 218, 0.3);
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.3), rgba(0, 198, 255, 0.3));
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 20px rgba(100, 255, 218, 0.2);
+        border-color: rgba(100, 255, 218, 0.5);
     }
     
     .date-range-picker {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1.5rem;
         margin-bottom: 1.5rem;
+        width: 100%;
     }
 
     .date-input-group {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        width: 100%;
     }
 
     .date-input-group label {
         font-size: 1rem;
         color: var(--accent);
+        font-weight: 600;
     }
 
     .custom-date-time-picker {
         display: flex;
-        gap: 10px;
-        margin-top: 5px;
+        gap: 12px;
+        margin-top: 0.25rem;
+        width: 100%;
     }
 
     .date-input, .time-input {
         flex: 1;
-        background: rgba(10, 25, 47, 0.8);
-        border: 1px solid rgba(100, 255, 218, 0.2);
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.9), rgba(2, 12, 27, 0.8));
+        border: 1px solid rgba(100, 255, 218, 0.25);
         color: white;
-        padding: 0.8rem 1rem;
-        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        border-radius: 10px;
         outline: none;
         cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
+        transition: var(--transition);
+        font-size: 1rem;
         text-align: center;
+        min-width: 0;
+        backdrop-filter: blur(10px);
+        font-weight: 500;
     }
 
     .date-input:hover, .time-input:hover {
         border-color: var(--accent);
-        background: rgba(10, 25, 47, 0.9);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
 
     .time-input::-webkit-calendar-picker-indicator {
         filter: invert(65%) sepia(91%) saturate(5348%) hue-rotate(118deg) brightness(102%) contrast(101%);
         cursor: pointer;
+        scale: 1.2;
     }
 
     .download-options {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1rem;
         margin-top: 1.5rem;
+        width: 100%;
     }
 
     .download-btn {
         background: linear-gradient(135deg, var(--accent), var(--primary));
-        color: var(--dark);
+        color: var(--darker);
         border: none;
-        padding: 0.8rem 1.5rem;
-        border-radius: 5px;
+        padding: 1.25rem 2rem;
+        border-radius: 12px;
         cursor: pointer;
-        font-weight: 500;
+        font-weight: 700;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
+        gap: 0.75rem;
+        transition: var(--transition);
+        justify-content: center;
+        min-width: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .download-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .download-btn:hover::before {
+        left: 100%;
     }
 
     .download-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(100, 255, 218, 0.3);
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 
+            0 15px 30px rgba(100, 255, 218, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
     .page-content {
         display: none;
+        width: 100%;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
     
     .page-content.active {
@@ -463,34 +731,890 @@
     .status-indicator {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        background: rgba(10, 25, 47, 0.5);
+        gap: 0.75rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 25px;
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.6), transparent);
         font-size: 0.9rem;
         margin-left: auto;
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+        transition: var(--transition);
+    }
+
+    .status-indicator:hover {
+        transform: scale(1.05);
+        border-color: rgba(100, 255, 218, 0.3);
     }
 
     .status-dot {
-        width: 10px;
-        height: 10px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         display: inline-block;
+        position: relative;
+    }
+
+    .status-dot::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        border-radius: 50%;
+        animation: pulseDot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseDot {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.2); }
     }
 
     .status-connected {
         background-color: var(--success);
+        box-shadow: 0 0 15px var(--success);
+    }
+
+    .status-connected::after {
+        background: var(--success);
     }
 
     .status-disconnected {
         background-color: var(--warning);
+        box-shadow: 0 0 15px var(--warning);
     }
 
-    .status-demo {
-        background-color: var(--primary);
+    .status-disconnected::after {
+        background: var(--warning);
+    }
+    
+    .guide-step {
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.08), transparent);
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        border-left: 4px solid var(--primary);
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .guide-step::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.05), transparent);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .guide-step:hover {
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.12), transparent);
+        transform: translateX(8px) translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 198, 255, 0.1);
+    }
+
+    .guide-step:hover::before {
+        opacity: 1;
+    }
+    
+    .guide-step h4 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .step-number {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: 800;
+        box-shadow: 0 4px 10px rgba(0, 198, 255, 0.3);
+    }
+    
+    .section-title {
+        font-size: clamp(1.3rem, 4vw, 2rem);
+        color: var(--accent);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-weight: 800;
+        width: 100%;
+        text-shadow: 0 2px 10px rgba(100, 255, 218, 0.3);
+    }
+
+    .section-title i {
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .device-selector {
+        margin-bottom: 2rem;
+        width: 100%;
+    }
+    
+    .sensor-config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+    }
+    
+    .config-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        transition: var(--transition);
+        width: 100%;
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .config-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.1), transparent);
+        border-radius: 0 0 0 80px;
+    }
+    
+    .config-card:hover {
+        border-color: rgba(100, 255, 218, 0.3);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(100, 255, 218, 0.2);
+    }
+    
+    .config-title {
+        font-size: 1.1rem;
+        color: var(--accent);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 700;
+    }
+    
+    .value-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(100, 255, 218, 0.1);
+        width: 100%;
+    }
+    
+    .value-label {
+        font-size: 0.9rem;
+        color: var(--light);
+        opacity: 0.8;
+        font-weight: 500;
+    }
+    
+    .value-number {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--accent);
+        text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+        gap: 2rem;
+        width: 100%;
+        align-items: start;
+    }
+    
+    .data-highlights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        width: 100%;
+    }
+    
+    .highlight-card {
+        background: linear-gradient(135deg, var(--card-bg), rgba(10, 25, 47, 0.5));
+        border-radius: var(--border-radius);
+        padding: 2rem 1.5rem;
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        text-align: center;
+        transition: var(--transition);
+        width: 100%;
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .highlight-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.05), transparent);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .highlight-card:hover {
+        transform: translateY(-8px) scale(1.05);
+        border-color: rgba(100, 255, 218, 0.3);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(100, 255, 218, 0.2);
+    }
+
+    .highlight-card:hover::before {
+        opacity: 1;
+    }
+    
+    .highlight-value {
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-weight: 900;
+        color: var(--accent);
+        margin: 1rem 0;
+        text-shadow: 0 0 20px rgba(100, 255, 218, 0.4);
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .highlight-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .alerts-panel {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        margin-bottom: 1.5rem;
+        width: 100%;
+        backdrop-filter: blur(15px);
+    }
+    
+    .alert-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 0.75rem;
+        background: linear-gradient(135deg, rgba(255, 94, 87, 0.1), transparent);
+        border-left: 4px solid var(--warning);
+        transition: var(--transition);
+        width: 100%;
+        backdrop-filter: blur(10px);
+    }
+
+    .alert-item:hover {
+        transform: translateX(5px);
+        background: linear-gradient(135deg, rgba(255, 94, 87, 0.15), transparent);
+    }
+    
+    .alert-item.info {
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.1), transparent);
+        border-left: 4px solid var(--primary);
+    }
+
+    .alert-item.info:hover {
+        background: linear-gradient(135deg, rgba(0, 198, 255, 0.15), transparent);
+    }
+    
+    .alert-icon {
+        color: var(--warning);
+        font-size: 1.3rem;
+        margin-top: 0.1rem;
+        flex-shrink: 0;
+    }
+    
+    .alert-item.info .alert-icon {
+        color: var(--primary);
+    }
+    
+    .alert-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .alert-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+        color: var(--light);
+    }
+    
+    .alert-desc {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        line-height: 1.5;
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+    
+    .action-btn {
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.12), rgba(0, 198, 255, 0.08));
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        color: var(--accent);
+        padding: 1.5rem 1rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: center;
+        width: 100%;
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.1), transparent);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .action-btn:hover {
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.2), rgba(0, 198, 255, 0.15));
+        transform: translateY(-5px) scale(1.05);
+        border-color: rgba(100, 255, 218, 0.4);
+        box-shadow: 0 10px 25px rgba(100, 255, 218, 0.2);
+    }
+
+    .action-btn:hover::before {
+        opacity: 1;
+    }
+    
+    .action-icon {
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .action-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.25), transparent);
+        border-radius: 10px;
+        padding: 1.5rem 1rem;
+        border: 1px solid rgba(100, 255, 218, 0.15);
+        text-align: center;
+        transition: var(--transition);
+        backdrop-filter: blur(10px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(100, 255, 218, 0.3);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: linear-gradient(135deg, var(--warning), #ff2a2a);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(255, 94, 87, 0.5);
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-5px); }
+        60% { transform: translateY(-3px); }
+    }
+    
+    .menu-item.with-badge {
+        position: relative;
+    }
+    
+    .tab-navigation {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+        padding-bottom: 0.5rem;
+        width: 100%;
+        flex-wrap: wrap;
+        position: relative;
+    }
+
+    .tab-navigation::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.3), transparent);
+    }
+    
+    .tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--light);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+        font-weight: 600;
+        flex: 1;
+        min-width: 140px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .tab-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(100, 255, 218, 0.1), transparent);
+        transition: left 0.6s ease;
+    }
+    
+    .tab-btn.active {
+        background: linear-gradient(135deg, rgba(100, 255, 218, 0.15), transparent);
+        color: var(--accent);
+        box-shadow: 0 4px 15px rgba(100, 255, 218, 0.2);
+        border: 1px solid rgba(100, 255, 218, 0.3);
+    }
+
+    .tab-btn.active::before {
+        left: 100%;
+    }
+    
+    .tab-btn:hover:not(.active) {
+        background: rgba(100, 255, 218, 0.08);
+        transform: translateY(-2px);
+    }
+    
+    .tab-content {
+        display: none;
+        width: 100%;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+
+    .flow-stats-display {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.25), transparent);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        width: 100%;
+        border: 1px solid rgba(100, 255, 218, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    /* ADVANCED Video Container */
+    .video-stack-container {
+        position: relative;
+        background: linear-gradient(135deg, rgba(2, 12, 27, 0.8), rgba(10, 25, 47, 0.6));
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 280px;
+        width: 100%;
+        aspect-ratio: 16/9;
+        border: 1px solid rgba(100, 255, 218, 0.2);
+        backdrop-filter: blur(20px);
+        transition: var(--transition);
+    }
+
+    .video-stack-container:hover {
+        border-color: rgba(100, 255, 218, 0.4);
+        box-shadow: 
+            0 15px 35px rgba(0, 198, 255, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        transform: translateY(-5px);
+    }
+
+    .video-stack-container .flow-video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: auto;
+        height: auto;
+        max-width: 95%;
+        max-height: 95%;
+        object-fit: contain;
+        opacity: 0;
+        transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .video-stack-container .flow-video.active {
+        opacity: 1;
+        animation: videoAppear 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes videoAppear {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    /* Enhanced Responsive Design with Mobile-First Approach */
+    @media (max-width: 1400px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .sensor-config-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+    }
+    
+    @media (max-width: 1200px) {
+        .container {
+            grid-template-columns: 280px 1fr;
+        }
+        
+        .data-highlights {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .flow-display {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 1024px) {
+        .container {
+            grid-template-columns: 250px 1fr;
+        }
+        
+        .sensor-config-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .frequency-display {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
     
     @media (max-width: 768px) {
+        .container {
+            grid-template-columns: 1fr;
+            grid-template-rows: 70px 1fr;
+        }
+        
+        aside {
+            position: fixed;
+            top: 70px;
+            left: -100%;
+            width: 280px;
+            height: calc(100vh - 70px);
+            z-index: 500;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        aside.mobile-open {
+            left: 0;
+        }
+        
+        .sidebar-toggle {
+            display: flex;
+        }
+        
+        main {
+            padding: 1rem;
+            height: calc(100vh - 70px);
+        }
+        
+        .card {
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .flow-display {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .frequency-display {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .date-range-picker {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .download-options {
+            grid-template-columns: 1fr;
+        }
+        
+        .data-highlights {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .sensor-config-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .tab-navigation {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .tab-btn {
+            min-width: auto;
+            width: 100%;
+        }
+        
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .flow-rate {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .input-wrapper {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .set-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .video-stack-container {
+            min-height: 250px;
+            aspect-ratio: 16/9;
+        }
+    }
+
+    @media (max-width: 480px) {
+        header {
+            padding: 0 1rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.1rem;
+        }
+        
+        .logo img {
+            height: 35px;
+            width: 35px;
+        }
+        
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card {
+            padding: 1rem;
+            border-radius: 10px;
+        }
+        
+        .flow-rate-display, .frequency-value {
+            padding: 1.25rem 1rem;
+        }
+        
+        .guide-step {
+            padding: 1.5rem;
+        }
+        
+        .config-card {
+            padding: 1.5rem;
+        }
+        
+        .video-stack-container {
+            min-height: 220px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 360px) {
+        main {
+            padding: 0.75rem;
+        }
+        
+        .card {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .flow-rate {
+            font-size: 2rem;
+        }
+        
+        .highlight-card {
+            padding: 1.5rem 1rem;
+        }
+    }
+
+    /* High-DPI Screens */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+        .card, .config-card, .highlight-card {
+            backdrop-filter: blur(30px);
+        }
+    }
+
+    /* Reduced Motion for Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+        
+        .card:hover, .menu-item:hover, .action-btn:hover {
+            transform: none;
+        }
+    }
+
+    /* Dark mode support (already dark, but for consistency) */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --card-bg: rgba(10, 25, 47, 0.8);
+            --sidebar-bg: rgba(2, 12, 27, 0.9);
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        .sidebar-toggle, .status-indicator, .action-btn, .set-btn, .download-btn {
+            display: none !important;
+        }
+        
         .container {
             grid-template-columns: 1fr;
         }
@@ -499,260 +1623,657 @@
             display: none;
         }
         
-        .flow-display {
-            grid-template-columns: 1fr;
+        .card {
+            box-shadow: none;
+            border: 2px solid #ccc;
+            background: white;
+            color: black;
         }
         
-        .frequency-display {
-            flex-direction: column;
-            gap: 1rem;
+        .card-title, .section-title {
+            color: #333;
         }
+    }
 
-        .date-range-picker {
-            grid-template-columns: 1fr;
-        }
+    /* Loading States */
+    .loading {
+        position: relative;
+        overflow: hidden;
     }
-    
-    .guide-step {
-        background: rgba(0, 198, 255, 0.05);
-        padding: 1.5rem;
-        border-radius: 8px;
-        border-left: 4px solid var(--primary);
-        margin-bottom: 1.5rem;
+
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: loading 1.5s infinite;
     }
-    
-    .guide-step h4 {
-        color: var(--primary);
-        margin-bottom: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+
+    @keyframes loading {
+        0% { left: -100%; }
+        100% { left: 100%; }
     }
-    
-    .step-number {
-        background: var(--primary);
-        color: white;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        font-weight: bold;
+
+    /* Focus styles for accessibility */
+    button:focus-visible, 
+    input:focus-visible, 
+    select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    /* Custom scrollbar for webkit */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(2, 12, 27, 0.5);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(var(--primary), var(--accent));
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(var(--accent), var(--primary));
     }
 </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <img src="logo.png" alt="IEMA Logo">
-                <h1>FlowSense</h1>
-            </div>
-            <div class="status-indicator">
-                <span class="status-dot status-demo" id="connection-status"></span>
-                <span id="connection-text">Demo Mode</span>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-times" id="toggleIcon"></i>
-            </button>
-        </header>
+   <div class="container">
+    <header>
+        <div class="logo">
+            <img src="IEMA trademark logo.jpg" alt="IEMA Logo">
+            <h1>FlowSense</h1>
+        </div>
+        <div class="status-indicator">
+            <span class="status-dot status-disconnected" id="connection-status"></span>
+            <span id="connection-text">Disconnected</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-times" id="toggleIcon"></i>
+        </button>
+    </header>
 
-        <aside>
-            <nav class="sidebar-menu">
-                <div class="menu-item active" data-page="dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </div>
-                <div class="menu-item" data-page="reports">
-                    <i class="fas fa-file-download"></i>
-                    <span>Download Reports</span>
-                </div>
-                <div class="menu-item" data-page="about">
-                    <i class="fas fa-info-circle"></i>
-                    <span>About</span>
-                </div>
-                <div class="menu-item" data-page="overview">
-                    <i class="fas fa-question-circle"></i>
-                    <span>Site Overview</span>
-                </div>
-            </nav>
-        </aside>
-    
-        <main>
-            <!-- Dashboard Section -->
-            <div id="dashboard-page" class="page-content active">
-                <div class="device-selector">
-                    <div class="custom-select">
-                        <label for="device-select">
-                            <i class="fas fa-microchip"></i>
-                            Select Monitoring Device:
-                        </label>
-                        <div class="select-wrapper">
-                            <select id="device-select">
-                                <option value="">-- Select a Device --</option>
-                                <option value="device1" selected>FLOW-001 (Main Pipeline)</option>
-                                <option value="device2">FLOW-002 (Cooling System)</option>
-                                <option value="device3">FLOW-003 (Inlet Valve)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+    <aside>
+        <nav class="sidebar-menu">
+            <div class="menu-item active" data-page="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="menu-item" data-page="demo">
+                <i class="fas fa-vial"></i>
+                <span>Demo Mode</span>
+            </div>
+            <div class="menu-item" data-page="reports">
+                <i class="fas fa-file-download"></i>
+                <span>Download Reports</span>
+            </div>
+            <div class="menu-item with-badge" data-page="alerts">
+                <i class="fas fa-bell"></i>
+                <span>Alerts</span>
+                <span class="notification-badge">0</span>
+            </div>
+            <div class="menu-item" data-page="about">
+                <i class="fas fa-info-circle"></i>
+                <span>About</span>
+            </div>
+            <div class="menu-item" data-page="overview">
+                <i class="fas fa-question-circle"></i>
+                <span>Site Overview</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <!-- Dashboard Section -->
+        <div id="dashboard-page" class="page-content active">
+            <h2 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Flow Monitoring Dashboard
+            </h2>
             
-                <div class="card" style="margin-bottom: 1.5rem;">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-cog"></i>
-                            Sensor Configuration
-                        </h2>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="sensor-angle">
-                            <i class="fas fa-chevron-right"></i>
-                            Angle Between Sensors (θ):
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="number" id="sensor-angle" min="0" max="180" step="1" 
-                                value="45" placeholder="Enter angle (degrees)">
-                            <button class="set-btn" onclick="FlowSense.saveSensorAngle()">
-                                <i class="fas fa-check"></i> Set
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="pipe-diameter">
-                            <i class="fas fa-ruler-horizontal"></i>
-                            Pipe Diameter (m):
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="number" id="pipe-diameter" min="0.01" max="1" step="0.01" 
-                                value="0.1" placeholder="0.01-1.0">
-                            <button class="set-btn" onclick="FlowSense.savePipeDiameter()">
-                                <i class="fas fa-check"></i> Set
-                            </button>
-                        </div>
-                    </div>
+            <div class="data-highlights">
+                <div class="highlight-card">
+                    <div class="highlight-value" id="avg-flow-rate">0.0</div>
+                    <div class="highlight-label">Avg Flow Rate (L/min)</div>
                 </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-water"></i> Flow Rate Monitoring
-                        </h2>
-                    </div>
-                    <div class="flow-display">
-                        <div class="flow-rate-display">
-                            <div class="flow-rate" id="current-flow-rate">0.0<span class="flow-unit">L/min</span></div>
-                            <div>Current Flow Rate</div>
-                        </div>
-                        <div class="frequency-display">
-                            <div class="frequency-value">
-                                <div class="frequency-label">Time of Flight</div>
-                                <div class="frequency-number" id="time-of-flight">0.0<span class="frequency-unit">μs</span></div>
-                            </div>
-                            <div class="frequency-value">
-                                <div class="frequency-label">Flow Velocity</div>
-                                <div class="frequency-number" id="flow-velocity">0.0<span class="frequency-unit">m/s</span></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="highlight-card">
+                    <div class="highlight-value" id="max-flow-rate">0.0</div>
+                    <div class="highlight-label">Max Flow Rate (L/min)</div>
                 </div>
-                <div class="card" style="grid-column: 1 / -1;">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-chart-area"></i> Monitoring Charts
-                        </h2>
-                    </div>
-                    <div>
-                        <h3 style="color: var(--accent); margin-bottom: 1rem; font-size: 1rem;">
-                            <i class="fas fa-chart-line"></i> Flow Rate Trend
-                        </h3>
-                        <div class="graph-container">
-                            <canvas id="flowRateChart"></canvas>
-                        </div>
-                    </div>
+                <div class="highlight-card">
+                    <div class="highlight-value" id="total-volume">0.0</div>
+                    <div class="highlight-label">Total Volume (L)</div>
                 </div>
             </div>
-
-            <!-- Reports Section -->
-            <div id="reports-page" class="page-content">
-                <div class="card">
-                    <h2 style="color: var(--accent); margin-bottom: 1.5rem;">
-                        <i class="fas fa-file-download"></i> Download Reports
-                    </h2>
-                    <p style="margin-bottom: 1.5rem;">
-                        Generate and download comprehensive reports for your flow meter data. 
-                        Select date range to get detailed CSV files.
-                    </p>
-                
-                    <div class="date-range-picker">
-                        <div class="date-input-group">
-                            <label for="report-start-date">From:</label>
-                            <div class="custom-date-time-picker">
-                                <input type="text" id="report-start-date" class="date-input" placeholder="Select date">
-                                <input type="time" id="report-start-time" class="time-input" min="00:00" max="23:59" value="00:00" required>
+            
+            <div class="dashboard-grid">
+                <div>
+                    <div class="device-selector">
+                        <div class="custom-select">
+                            <label for="device-select">
+                                <i class="fas fa-microchip"></i>
+                                Select Monitoring Device:
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="device-select">
+                                    <option value="">-- Select a Device --</option>
+                                    <option value="device1">FLOW-001 (Main Pipeline)</option>
+                                    <option value="device2">FLOW-002 (Cooling System)</option>
+                                    <option value="device3">FLOW-003 (Inlet Valve)</option>
+                                </select>
                             </div>
                         </div>
+                    </div>
                     
-                        <div class="date-input-group">
-                            <label for="report-end-date">To:</label>
-                            <div class="custom-date-time-picker">
-                                <input type="text" id="report-end-date" class="date-input" placeholder="Select date">
-                                <input type="time" id="report-end-time" class="time-input" min="00:00" max="23:59" value="23:59" required>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-water"></i> Flow Rate Monitoring
+                            </h2>
+                        </div>
+                        <div class="flow-display">
+                            <div class="flow-rate-display">
+                                <div class="flow-rate">
+                                    <span id="current-flow-rate-value">0.0</span>
+                                    <span class="flow-unit">L/min</span>
+                                </div>
+                                <div>Current Flow Rate</div>
+                            </div>
+                            <div class="frequency-display">
+                                <div class="frequency-value">
+                                    <div class="frequency-label">Time of Flight</div>
+                                    <div class="frequency-number" id="time-of-flight">0.0<span class="frequency-unit">μs</span></div>
+                                </div>
+                                <div class="frequency-value">
+                                    <div class="frequency-label">Flow Velocity</div>
+                                    <div class="frequency-number" id="flow-velocity">0.0<span class="frequency-unit">m/s</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-area"></i> Monitoring Charts
+                            </h2>
+                        </div>
+                        <div>
+                            <div class="tab-navigation">
+                                <button class="tab-btn active" data-tab="flow-rate">Flow Rate</button>
+                                <button class="tab-btn" data-tab="velocity">Velocity</button>
+                                <button class="tab-btn" data-tab="tof">Time of Flight</button>
+                                <button class="tab-btn" data-tab="stats">Statistics</button>
+                            </div>
+                            <div class="tab-content active" id="flow-rate-tab">
+                                <div class="graph-container">
+                                    <canvas id="flowRateChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="velocity-tab">
+                                <div class="graph-container">
+                                    <canvas id="velocityChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="tof-tab">
+                                <div class="graph-container">
+                                    <canvas id="tofChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="stats-tab">
+                                <div class="graph-container">
+                                    <canvas id="statsChart"></canvas>
+                                </div>
+                                <div class="flow-stats-display">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="mean-flow-stat">0.0</div>
+                                        <div class="stat-label">Mean Flow (L/min)</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="median-flow-stat">0.0</div>
+                                        <div class="stat-label">Median Flow (L/min)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card" id="flow-video-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-cube"></i> Live Flow Visualizer
+                            </h2>
+                        </div>
+                        <div id="flow-visualizer-container" class="video-stack-container">
+                            <video class="flow-video" id="flow-video-low" src="low flow animation.mp4" poster="low_flow_poster.jpg" loop muted playsinline></video>
+                            <video class="flow-video" id="flow-video-normal" src="normal flow animation.mp4" loop muted playsinline></video>
+                            <video class="flow-video" id="flow-video-high" src="high flow animation.mp4" loop muted playsinline></video>
+                        </div>
+                    </div>
+                    <div class="sensor-config-grid">
+                        <div class="config-card">
+                            <h3 class="config-title">
+                                <i class="fas fa-cog"></i>
+                                Sensor Configuration
+                            </h3>
+                            
+                            <div class="input-group">
+                                <label for="sensor-angle">
+                                    <i class="fas fa-chevron-right"></i>
+                                    Angle Between Sensors (θ):
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="sensor-angle" min="0" max="180" step="1" 
+                                        value="45" placeholder="Enter angle (degrees)">
+                                    <button class="set-btn" onclick="FlowSense.saveSensorAngle()">
+                                        <i class="fas fa-check"></i> Set
+                                    </button>
+                                </div>
+                            </div>
 
-                    <div class="download-options">
-                        <button class="download-btn" onclick="FlowSense.downloadFlowRateReport()">
-                            <i class="fas fa-tachometer-alt"></i>
-                            Download Flow Rate Data
-                        </button>
-                        <button class="download-btn" onclick="FlowSense.downloadCombinedReport()">
-                            <i class="fas fa-file-archive"></i>
-                            Download Combined Report
-                        </button>
+                            <div class="input-group">
+                                <label for="pipe-diameter">
+                                    <i class="fas fa-ruler-horizontal"></i>
+                                    Pipe Diameter (m):
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="pipe-diameter" min="0.01" max="1" step="0.01" 
+                                        value="0.1" placeholder="0.01-1.0">
+                                    <button class="set-btn" onclick="FlowSense.savePipeDiameter()">
+                                        <i class="fas fa-check"></i> Set
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="value-display">
+                                <span class="value-label">Speed of Sound:</span>
+                                <span class="value-number">1482 m/s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="config-card">
+                            <h3 class="config-title">
+                                <i class="fas fa-info-circle"></i>
+                                Current Status
+                            </h3>
+                            
+                            <div class="status-display">
+                                <div class="value-display" style="border-top: none; padding-top: 0;">
+                                    <span class="value-label">Device Status:</span>
+                                    <span class="value-number" id="device-status">Offline</span>
+                                </div>
+                                <div class="value-display">
+                                    <span class="value-label">Last Update:</span>
+                                    <span class="value-number" id="last-update">Never</span>
+                                </div>
+                                <div class="value-display">
+                                    <span class="value-label">Data Points:</span>
+                                    <span class="value-number" id="data-points">0</span>
+                                </div>
+                                <div class="value-display">
+                                    <span class="value-label">Packet Error Rate:</span>
+                                    <span class="value-number" id="error-rate-stat">0.0%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="uptime-stat">00:00:00</div>
+                                    <div class="stat-label">Uptime</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="downtime-stat">00:00:00</div>
+                                    <div class="stat-label">Downtime (No Flow)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alerts-panel">
+                         <h3 class="config-title">
+                            <i class="fas fa-bell"></i>
+                            System Alerts
+                        </h3>
+                        <div id="dashboard-alerts-container">
+                            <!-- Alerts will be dynamically inserted here -->
+                        </div>
+                        <div class="quick-actions" style="margin-top: 0.5rem;">
+                             <div class="action-btn" onclick="FlowSense.connectMQTT()" style="grid-column: 1 / 3;">
+                                <i class="fas fa-plug action-icon"></i>
+                                <div class="action-label">Reconnect to Live Data</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Enhanced Demo Section -->
+        <div id="demo-page" class="page-content">
+            <h2 class="section-title">
+                <i class="fas fa-vial"></i>
+                Demonstration Mode
+            </h2>
+            <div class="card">
+                <p style="margin-bottom: 1.5rem;">
+                    Experience the full FlowSense functionality with realistic simulated data. 
+                    Time of Flight is limited to 1 microsecond maximum for authentic ultrasonic flow measurement simulation.
+                </p>
+                <div class="quick-actions" style="grid-template-columns: 1fr 1fr;">
+                    <div class="action-btn" onclick="FlowSense.toggleDemoMode(true)">
+                        <i class="fas fa-play-circle action-icon" id="demo-start-icon"></i>
+                        <div class="action-label" id="demo-start-label">Start Demo</div>
+                    </div>
+                    <div class="action-btn" onclick="FlowSense.toggleDemoMode(false)">
+                        <i class="fas fa-stop-circle action-icon"></i>
+                        <div class="action-label">Stop Demo</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- In the demo data-highlights section, replace with: -->
+            <div class="data-highlights">
+                <div class="highlight-card">
+                    <div class="highlight-value" id="demo-avg-flow-rate">0.0</div>
+                    <div class="highlight-label">Avg Flow Rate (L/min)</div>
+                </div>
+                <div class="highlight-card">
+                    <div class="highlight-value" id="demo-max-flow-rate">0.0</div>
+                    <div class="highlight-label">Max Flow Rate (L/min)</div>
+                </div>
+                <div class="highlight-card">
+                    <div class="highlight-value" id="demo-total-volume">0.0</div>
+                    <div class="highlight-label">Total Volume (L)</div>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div>
+                    <div class="device-selector">
+                        <div class="custom-select">
+                            <label for="demo-device-select">
+                                <i class="fas fa-microchip"></i>
+                                Select Demo Device:
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="demo-device-select">
+                                    <option value="demo-device1">DEMO-001 (Main Pipeline)</option>
+                                    <option value="demo-device2">DEMO-002 (Cooling System)</option>
+                                    <option value="demo-device3">DEMO-003 (Inlet Valve)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-water"></i> Flow Rate Monitoring
+                            </h2>
+                        </div>
+                        <div class="flow-display">
+                            <div class="flow-rate-display">
+                                <div class="flow-rate">
+                                    <span id="demo-current-flow-rate-value">0.0</span>
+                                    <span class="flow-unit">L/min</span>
+                                </div>
+                                <div>Current Flow Rate</div>
+                            </div>
+                            <div class="frequency-display">
+                                <div class="frequency-value">
+                                    <div class="frequency-label">Time of Flight</div>
+                                    <div class="frequency-number" id="demo-time-of-flight">0.0<span class="frequency-unit">μs</span></div>
+                                </div>
+                                <div class="frequency-value">
+                                    <div class="frequency-label">Flow Velocity</div>
+                                    <div class="frequency-number" id="demo-flow-velocity">0.0<span class="frequency-unit">m/s</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-area"></i> Monitoring Charts
+                            </h2>
+                        </div>
+                        <div>
+                            <div class="tab-navigation demo-tabs">
+                                <button class="tab-btn active" data-tab="demo-flow-rate">Flow Rate</button>
+                                <button class="tab-btn" data-tab="demo-velocity">Velocity</button>
+                                <button class="tab-btn" data-tab="demo-tof">Time of Flight</button>
+                                <button class="tab-btn" data-tab="demo-stats">Statistics</button>
+                            </div>
+                            <div class="tab-content active" id="demo-flow-rate-tab">
+                                <div class="graph-container">
+                                    <canvas id="demo-flowRateChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="demo-velocity-tab">
+                                <div class="graph-container">
+                                    <canvas id="demo-velocityChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="demo-tof-tab">
+                                <div class="graph-container">
+                                    <canvas id="demo-tofChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="demo-stats-tab">
+                                <div class="graph-container">
+                                    <canvas id="demo-statsChart"></canvas>
+                                </div>
+                                <!-- In the demo flow-stats-display section, replace with: -->
+                                <div class="flow-stats-display">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="demo-mean-flow-stat">0.0</div>
+                                        <div class="stat-label">Mean Flow (L/min)</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="demo-median-flow-stat">0.0</div>
+                                        <div class="stat-label">Median Flow (L/min)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-cube"></i> Flow Visualizer
+                            </h2>
+                        </div>
+                        <div id="demo-flow-visualizer-container" class="video-stack-container">
+                            <video class="flow-video" id="demo-flow-video-low" src="low flow animation.mp4" loop muted playsinline></video>
+                            <video class="flow-video" id="demo-flow-video-normal" src="normal flow animation.mp4" loop muted playsinline></video>
+                            <video class="flow-video" id="demo-flow-video-high" src="high flow animation.mp4" loop muted playsinline></video>
+                        </div>
+                    </div>
+                    
+                    <div class="sensor-config-grid">
+                        <div class="config-card">
+                            <h3 class="config-title">
+                                <i class="fas fa-cog"></i>
+                                Sensor Configuration
+                            </h3>
+                            
+                            <div class="input-group">
+                                <label for="demo-sensor-angle">
+                                    <i class="fas fa-chevron-right"></i>
+                                    Angle Between Sensors (θ):
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="demo-sensor-angle" min="0" max="180" step="1" 
+                                        value="45" placeholder="Enter angle (degrees)">
+                                    <button class="set-btn" onclick="FlowSense.saveDemoSensorAngle()">
+                                        <i class="fas fa-check"></i> Set
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="demo-pipe-diameter">
+                                    <i class="fas fa-ruler-horizontal"></i>
+                                    Pipe Diameter (m):
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="demo-pipe-diameter" min="0.01" max="1" step="0.01" 
+                                        value="0.1" placeholder="0.01-1.0">
+                                    <button class="set-btn" onclick="FlowSense.saveDemoPipeDiameter()">
+                                        <i class="fas fa-check"></i> Set
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="value-display">
+                                <span class="value-label">Speed of Sound:</span>
+                                <span class="value-number">1482 m/s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="config-card">
+                            <h3 class="config-title">
+                                <i class="fas fa-info-circle"></i>
+                                Demo Status
+                            </h3>
+                            
+                            <div class="status-display">
+                                <div class="value-display" style="border-top: none; padding-top: 0;">
+                                    <span class="value-label">Demo Status:</span>
+                                    <span class="value-number" id="demo-device-status">Inactive</span>
+                                </div>
+                                <div class="value-display">
+                                    <span class="value-label">Last Update:</span>
+                                    <span class="value-number" id="demo-last-update">Never</span>
+                                </div>
+                                <div class="value-display">
+                                    <span class="value-label">Data Points:</span>
+                                    <span class="value-number" id="demo-data-points">0</span>
+                                </div>
+                                <div class="value-display">
+                                    <span class="value-label">Current Pattern:</span>
+                                    <span class="value-number" id="demo-current-pattern">Steady</span>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="demo-uptime-stat">00:00:00</div>
+                                    <div class="stat-label">Demo Uptime</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="demo-flow-time">00:00:00</div>
+                                    <div class="stat-label">Flow Duration</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alerts-panel">
+                         <h3 class="config-title">
+                            <i class="fas fa-bell"></i>
+                            Demo Alerts
+                        </h3>
+                        <div id="demo-alerts-container">
+                            <!-- Demo alerts will be dynamically inserted here -->
+                        </div>
+                        <div class="quick-actions" style="margin-top: 0.5rem;">
+                             <div class="action-btn" onclick="FlowSense.changeDemoPattern()" style="grid-column: 1 / 3;">
+                                <i class="fas fa-random action-icon"></i>
+                                <div class="action-label">Change Flow Pattern</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports-page" class="page-content">
+            <h2 class="section-title"><i class="fas fa-file-download"></i>Download Reports</h2>
+            <div class="card">
+                <p style="margin-bottom: 1.5rem;">Generate and download comprehensive reports for your flow meter data. Select date range to get detailed CSV files.</p>
+                <div class="date-range-picker">
+                    <div class="date-input-group">
+                        <label for="report-start-date">From:</label>
+                        <div class="custom-date-time-picker">
+                            <input type="text" id="report-start-date" class="date-input" placeholder="Select date">
+                            <input type="time" id="report-start-time" class="time-input" min="00:00" max="23:59" value="00:00" required>
+                        </div>
+                    </div>
+                    <div class="date-input-group">
+                        <label for="report-end-date">To:</label>
+                        <div class="custom-date-time-picker">
+                            <input type="text" id="report-end-date" class="date-input" placeholder="Select date">
+                            <input type="time" id="report-end-time" class="time-input" min="00:00" max="23:59" value="23:59" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="download-options">
+                    <button class="download-btn" onclick="FlowSense.downloadFlowRateReport()"><i class="fas fa-tachometer-alt"></i>Download Flow Rate Data</button>
+                    <button class="download-btn" onclick="FlowSense.downloadCombinedReport()"><i class="fas fa-file-archive"></i>Download Combined Report</button>
+                </div>
+            </div>
+        </div>
         
-            <!-- About and Overview Sections -->
-            <div id="about-page" class="page-content">
-                <div class="card">
-                    <div class="card-header"><h2 class="card-title"><i class="fas fa-info-circle"></i> About FlowSense</h2></div>
-                    <p style="margin-top: 1rem;">FlowSense represents the cutting edge in ultrasonic flow measurement technology, delivering unparalleled accuracy in flow monitoring.</p>
-                    <div class="guide-step">
-                        <h4><span class="step-number">1</span>Technology</h4>
-                        <p>FlowSense uses advanced Time-of-Flight (TOF) measurement with TDC7200 precision timer for accurate flow monitoring.</p>
-                    </div>
-                    <div class="guide-step">
-                        <h4><span class="step-number">2</span>Applications</h4>
-                        <p>Ideal for industrial process control, water management, HVAC systems, and any application requiring precise liquid flow measurement.</p>
-                    </div>
+        <!-- Alerts Section -->
+        <div id="alerts-page" class="page-content">
+            <h2 class="section-title"><i class="fas fa-bell"></i>System Alerts & Notifications</h2>
+            <div class="card" id="all-alerts-container"></div>
+        </div>
+    
+        <!-- About and Overview Sections -->
+        <div id="about-page" class="page-content">
+            <h2 class="section-title"><i class="fas fa-info-circle"></i>About FlowSense</h2>
+            <div class="card">
+                <p style="margin-top: 1rem;">FlowSense represents the cutting edge in ultrasonic flow measurement technology, delivering unparalleled accuracy in flow monitoring.</p>
+                <div class="guide-step">
+                    <h4><span class="step-number">1</span>Technology</h4>
+                    <p>FlowSense uses advanced Time-of-Flight (TOF) measurement with TDC7200 precision timer for accurate flow monitoring.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><span class="step-number">2</span>Applications</h4>
+                    <p>Ideal for industrial process control, water management, HVAC systems, and any application requiring precise liquid flow measurement.</p>
                 </div>
             </div>
-            <div id="overview-page" class="page-content">
-                <div class="card">
-                    <h2 style="color: var(--accent); margin-bottom: 1.5rem;"><i class="fas fa-question-circle"></i> User Guide</h2>
-                    <div class="guide-step">
-                        <h4><span class="step-number">1</span>Sensor Configuration</h4>
-                        <p>On the Dashboard, input the angle between your sensors and the inner diameter of the pipe. These values are crucial for accurate flow rate calculations.</p>
-                    </div>
-                    <div class="guide-step">
-                        <h4><span class="step-number">2</span>Device Selection & Monitoring</h4>
-                        <p>Use the dropdown to switch between devices. Real-time Flow Rate, Time of Flight, and Flow Velocity will be displayed and charted automatically.</p>
-                    </div>
-                    <div class="guide-step">
-                        <h4><span class="step-number">3</span>Troubleshooting</h4>
-                        <p>If no data is received from devices, the system will automatically enter demo mode. Check your MQTT connection and device status if this occurs.</p>
-                    </div>
+        </div>
+        
+        <div id="overview-page" class="page-content">
+            <h2 class="section-title"><i class="fas fa-question-circle"></i>User Guide</h2>
+            <div class="card">
+                <div class="guide-step">
+                    <h4><span class="step-number">1</span>Sensor Configuration</h4>
+                    <p>On the Dashboard, input the angle between your sensors and the inner diameter of the pipe. These values are crucial for accurate flow rate calculations.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><span class="step-number">2</span>Device Selection & Monitoring</h4>
+                    <p>Use the dropdown to switch between devices. Real-time Flow Rate, Time of Flight, and Flow Velocity will be displayed and charted automatically.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><span class="step-number">3</span>Connection Status</h4>
+                    <p>The system starts in disconnected mode. Click "Reconnect" on the dashboard to attempt MQTT connection. To see a simulation, navigate to the "Demo Mode" page.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><span class="step-number">4</span>Demo Mode</h4>
+                    <p>Experience the full functionality with realistic simulated data. Demo mode features multiple flow patterns and 1 microsecond TOF limit for authentic simulation.</p>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
+</div>
 <script>
 // FlowSense Application
 const FlowSense = (function() {
@@ -760,474 +2281,1212 @@ const FlowSense = (function() {
     const config = {
         mqtt: {
             host: 'test.mosquitto.org',
-            port: 8080, // Secure WebSocket port for browsers
+            port: 8081,
             clientId: 'FlowSenseWebClient_' + Math.random().toString(16).substring(2, 8),
             topicBase: 'flowsense/device/',
         },
         defaults: {
-            sensorAngle: 45,        // degrees
-            speedOfSound: 1482,     // m/s in water at 20°C
-            pipeDiameter: 0.1       // meters
+            sensorAngle: 45,
+            speedOfSound: 1482,
+            pipeDiameter: 0.1
+        },
+        thresholds: {
+            highFlow: 80.0,
+            noFlow: 1.0, 
+        },
+        demo: {
+            maxTOF: 1.0, // 1 microsecond maximum for demo mode
+            minTOF: 0.1, // 0.1 microsecond minimum
+            updateInterval: 1000, // Update every second
+            flowPatterns: {
+                steady: { base: 0.5, variation: 0.1 },
+                fluctuating: { base: 0.3, variation: 0.4 },
+                increasing: { base: 0.1, variation: 0.2, trend: 0.05 },
+                decreasing: { base: 0.8, variation: 0.2, trend: -0.03 }
+            }
         }
     };
 
     // Application state
     let state = {
-        currentDevice: 'device1',
+        currentDevice: '',
         mqttClient: null,
-        charts: {
-            flowRate: null,
+        connectionStatus: 'disconnected', 
+        lastDataTimestamp: null,
+        charts: { flowRate: null, velocity: null, tof: null, stats: null },
+        data: { timestamps: [], flowRates: [], timeOfFlights: [], flowVelocities: [] },
+        stats: { 
+            totalVolume: 0, 
+            avgFlowRate: 0, 
+            maxFlowRate: 0, 
+            successfulPackets: 0, 
+            failedPackets: 0,
+            meanFlow: 0,
+            medianFlow: 0
         },
-        data: {
-            timestamps: [],
-            flowRates: [],
-            timeOfFlights: [],
-            flowVelocities: []
+        lastVolumeCalcTimestamp: null,
+        activeVideoElement: null,
+        timers: {
+            status: null,
+            uptimeSeconds: 0,
+            downtimeSeconds: 0,
         },
-        connectionStatus: 'demo', // 'connected', 'disconnected', 'demo'
+        alerts: [],
+        demo: {
+            active: false,
+            interval: null,
+            uptimeSeconds: 0,
+            data: { 
+                timestamps: [], 
+                flowRates: [], 
+                timeOfFlights: [], 
+                flowVelocities: [],
+                avgFlowRate: 0,
+                maxFlowRate: 0,
+                totalVolume: 0,
+                meanFlow: 0,
+                medianFlow: 0
+            },
+            currentPattern: 'steady',
+            patternStartTime: null,
+            lastTOFValue: 0.5,
+            activeVideoElement: null,
+            charts: { flowRate: null, velocity: null, tof: null, stats: null },
+            stats: {
+                totalVolume: 0,
+                avgFlowRate: 0,
+                maxFlowRate: 0,
+                meanFlow: 0,
+                medianFlow: 0
+            },
+            lastVolumeCalcTimestamp: null
+        }
     };
 
-    // DOM Elements
-    const elements = {
-        flowRateDisplay: document.getElementById('current-flow-rate'),
-        timeOfFlightDisplay: document.getElementById('time-of-flight'),
-        flowVelocityDisplay: document.getElementById('flow-velocity'),
-        sensorAngleInput: document.getElementById('sensor-angle'),
-        pipeDiameterInput: document.getElementById('pipe-diameter'),
-        deviceSelect: document.getElementById('device-select'),
-        connectionStatus: document.getElementById('connection-status'),
-        connectionText: document.getElementById('connection-text')
-    };
+    const elements = {};
 
-    // Initialize the application
+    function cacheElements() {
+        // Main Dashboard
+        elements.dashboard = {
+            flowRateValue: document.getElementById('current-flow-rate-value'),
+            timeOfFlightDisplay: document.getElementById('time-of-flight'),
+            flowVelocityDisplay: document.getElementById('flow-velocity'),
+            avgFlowRate: document.getElementById('avg-flow-rate'),
+            maxFlowRate: document.getElementById('max-flow-rate'),
+            totalVolume: document.getElementById('total-volume'),
+            deviceStatus: document.getElementById('device-status'),
+            lastUpdate: document.getElementById('last-update'),
+            dataPoints: document.getElementById('data-points'),
+            uptimeStat: document.getElementById('uptime-stat'),
+            downtimeStat: document.getElementById('downtime-stat'),
+            errorRateStat: document.getElementById('error-rate-stat'),
+            flowVideoContainer: document.getElementById('flow-visualizer-container'),
+            videos: {
+                low: document.getElementById('flow-video-low'),
+                normal: document.getElementById('flow-video-normal'),
+                high: document.getElementById('flow-video-high')
+            },
+            meanFlowStat: document.getElementById('mean-flow-stat'),
+            medianFlowStat: document.getElementById('median-flow-stat'),
+        };
+        // Demo Page
+        elements.demo = {
+            flowRateValue: document.getElementById('demo-current-flow-rate-value'),
+            timeOfFlightDisplay: document.getElementById('demo-time-of-flight'),
+            flowVelocityDisplay: document.getElementById('demo-flow-velocity'),
+            uptimeStat: document.getElementById('demo-uptime-stat'),
+            dataPoints: document.getElementById('demo-data-points'),
+            flowVideoContainer: document.getElementById('demo-flow-visualizer-container'),
+            videos: {
+                low: document.getElementById('demo-flow-video-low'),
+                normal: document.getElementById('demo-flow-video-normal'),
+                high: document.getElementById('demo-flow-video-high')
+            },
+            // Add demo-specific statistics elements
+            avgFlowRate: document.getElementById('demo-avg-flow-rate'),
+            maxFlowRate: document.getElementById('demo-max-flow-rate'),
+            totalVolume: document.getElementById('demo-total-volume'),
+            meanFlowStat: document.getElementById('demo-mean-flow-stat'),
+            medianFlowStat: document.getElementById('demo-median-flow-stat'),
+            deviceStatus: document.getElementById('demo-device-status'),
+            lastUpdate: document.getElementById('demo-last-update'),
+            currentPattern: document.getElementById('demo-current-pattern'),
+            flowTime: document.getElementById('demo-flow-time')
+        };
+        // Global
+        elements.sensorAngleInput = document.getElementById('sensor-angle');
+        elements.pipeDiameterInput = document.getElementById('pipe-diameter');
+        elements.deviceSelect = document.getElementById('device-select');
+        elements.connectionStatus = document.getElementById('connection-status');
+        elements.connectionText = document.getElementById('connection-text');
+        elements.dashboardAlertsContainer = document.getElementById('dashboard-alerts-container');
+        elements.allAlertsContainer = document.getElementById('all-alerts-container');
+        elements.notificationBadge = document.querySelector('.notification-badge');
+        
+        // Demo-specific tab elements
+        elements.demoTabs = {
+            flowRate: document.getElementById('demo-flow-rate-tab'),
+            velocity: document.getElementById('demo-velocity-tab'),
+            tof: document.getElementById('demo-tof-tab'),
+            stats: document.getElementById('stats-tab')
+        };
+    }
+
     function init() {
+        cacheElements();
         initCharts();
         setupNavigation();
         setupEventListeners();
         loadSavedSettings();
-        updateConnectionStatus('demo');
-        connectMQTT();
+        startStatusTimer();
         
-        // Set default device
         elements.deviceSelect.value = state.currentDevice;
+        addAlert('info', 'System Initialized', 'Ready for MQTT connection or Demo Mode.');
+        resetData('dashboard');
+        updateConnectionStatus('disconnected');
         
-        setTimeout(() => {
-            if (!state.mqttClient || !state.mqttClient.connected) {
-                console.log("MQTT not connected, starting demo mode");
-                startDemoMode();
-            }
-        }, 5000);
+        // Set initial video state
+        state.activeVideoElement = elements.dashboard.videos.low;
+        state.activeVideoElement.classList.add('active');
+        state.demo.activeVideoElement = elements.demo.videos.low;
+        state.demo.activeVideoElement.classList.add('active');
+        
+        connectMQTT();
     }
-
-    // Update connection status UI
-    function updateConnectionStatus(status) {
-        state.connectionStatus = status;
-        elements.connectionStatus.className = 'status-dot';
+    
+    // --- Enhanced Demo Mode Simulation ---
+    function generateDemoTOF() {
+        const pattern = config.demo.flowPatterns[state.demo.currentPattern];
+        let tofValue;
         
-        switch(status) {
-            case 'connected':
-                elements.connectionStatus.classList.add('status-connected');
-                elements.connectionText.textContent = 'Connected';
+        // Calculate time since pattern started
+        const patternDuration = state.demo.patternStartTime ? 
+            (Date.now() - state.demo.patternStartTime) / 1000 : 0;
+        
+        switch(state.demo.currentPattern) {
+            case 'steady':
+                tofValue = pattern.base + (Math.random() - 0.5) * pattern.variation;
                 break;
-            case 'disconnected':
-                elements.connectionStatus.classList.add('status-disconnected');
-                elements.connectionText.textContent = 'Disconnected';
+            case 'fluctuating':
+                tofValue = pattern.base + Math.sin(patternDuration * 2) * pattern.variation + (Math.random() - 0.5) * 0.1;
                 break;
-            case 'demo':
-                elements.connectionStatus.classList.add('status-demo');
-                elements.connectionText.textContent = 'Demo Mode';
+            case 'increasing':
+                tofValue = pattern.base + pattern.trend * patternDuration + (Math.random() - 0.5) * pattern.variation;
+                // Switch to decreasing when reaching upper limit
+                if (tofValue > 0.9) state.demo.currentPattern = 'decreasing';
+                break;
+            case 'decreasing':
+                tofValue = pattern.base + pattern.trend * patternDuration + (Math.random() - 0.5) * pattern.variation;
+                // Switch to increasing when reaching lower limit
+                if (tofValue < 0.2) state.demo.currentPattern = 'increasing';
                 break;
         }
+        
+        // Ensure TOF stays within 0.1 to 1.0 microsecond range
+        tofValue = Math.max(config.demo.minTOF, Math.min(config.demo.maxTOF, tofValue));
+        
+        // Add some persistence to make it more realistic
+        tofValue = (state.demo.lastTOFValue * 0.3) + (tofValue * 0.7);
+        state.demo.lastTOFValue = tofValue;
+        
+        return tofValue;
     }
 
-    // Initialize charts
+    function changeDemoPattern() {
+        const patterns = Object.keys(config.demo.flowPatterns);
+        let newPattern;
+        do {
+            newPattern = patterns[Math.floor(Math.random() * patterns.length)];
+        } while (newPattern === state.demo.currentPattern && patterns.length > 1);
+        
+        state.demo.currentPattern = newPattern;
+        state.demo.patternStartTime = Date.now();
+        
+        console.log(`Demo pattern changed to: ${newPattern}`);
+    }
+
+    // --- Video State Controller ---
+    function updateVideoState(context) {
+        const isDemo = context === 'demo';
+        const data = isDemo ? state.demo.data : state.data;
+        const videos = isDemo ? elements.demo.videos : elements.dashboard.videos;
+        
+        let activeState = isDemo ? state.demo : state;
+        const flowRates = data.flowRates;
+        const lastFlowRate = flowRates.length > 0 ? flowRates[flowRates.length - 1] : 0;
+        
+        // Not enough data for meaningful analysis
+        if (flowRates.length < 3) {
+            setVideoState('normal', activeState, videos, isDemo, lastFlowRate);
+            return;
+        }
+        
+        // Advanced flow analysis
+        const analysis = analyzeFlowPattern(flowRates);
+        const targetState = determineOptimalVideoState(lastFlowRate, analysis);
+        
+        setVideoState(targetState, activeState, videos, isDemo, lastFlowRate);
+    }
+
+    function analyzeFlowPattern(flowRates) {
+        const recentData = flowRates.slice(-15); // Last 15 data points for current trend
+        const historicalData = flowRates; // All data for baseline
+        
+        // Calculate various averages and trends
+        const trueAvg = historicalData.reduce((a, b) => a + b, 0) / historicalData.length;
+        const currentAvg = recentData.reduce((a, b) => a + b, 0) / recentData.length;
+        const maxFlow = Math.max(...historicalData);
+        const minFlow = Math.min(...historicalData);
+        const lastFlow = flowRates[flowRates.length - 1];
+        
+        // Calculate trend direction and strength
+        const trend = calculateTrend(recentData);
+        const volatility = calculateVolatility(recentData);
+        const momentum = calculateMomentum(flowRates);
+        
+        // Calculate percentage deviations
+        const deviationFromTrueAvg = ((lastFlow - trueAvg) / trueAvg) * 100;
+        const deviationFromCurrentAvg = ((lastFlow - currentAvg) / currentAvg) * 100;
+        
+        // Flow regime detection
+        const flowRegime = detectFlowRegime(lastFlow, trueAvg, maxFlow, minFlow);
+        
+        return {
+            trueAvg,
+            currentAvg,
+            maxFlow,
+            minFlow,
+            lastFlow,
+            trend,
+            volatility,
+            momentum,
+            deviationFromTrueAvg,
+            deviationFromCurrentAvg,
+            flowRegime,
+            dataPoints: flowRates.length
+        };
+    }
+
+    function calculateTrend(data) {
+        if (data.length < 2) return 0;
+        
+        const x = Array.from({length: data.length}, (_, i) => i);
+        const y = data;
+        
+        // Simple linear regression for trend
+        const n = x.length;
+        const sumX = x.reduce((a, b) => a + b, 0);
+        const sumY = y.reduce((a, b) => a + b, 0);
+        const sumXY = x.reduce((sum, val, i) => sum + val * y[i], 0);
+        const sumXX = x.reduce((sum, val) => sum + val * val, 0);
+        
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        
+        return slope;
+    }
+
+    function calculateVolatility(data) {
+        if (data.length < 2) return 0;
+        
+        const mean = data.reduce((a, b) => a + b, 0) / data.length;
+        const variance = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / data.length;
+        
+        return Math.sqrt(variance);
+    }
+
+    function calculateMomentum(data) {
+        if (data.length < 5) return 0;
+        
+        const recent = data.slice(-5);
+        const previous = data.slice(-10, -5);
+        
+        const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+        const previousAvg = previous.reduce((a, b) => a + b, 0) / previous.length;
+        
+        return ((recentAvg - previousAvg) / previousAvg) * 100;
+    }
+
+    function detectFlowRegime(currentFlow, trueAvg, maxFlow, minFlow) {
+        const flowRange = maxFlow - minFlow;
+        
+        if (flowRange === 0) return 'stable';
+        
+        const normalizedPosition = (currentFlow - minFlow) / flowRange;
+        
+        if (normalizedPosition < 0.2) return 'very_low';
+        if (normalizedPosition < 0.4) return 'low';
+        if (normalizedPosition < 0.6) return 'normal';
+        if (normalizedPosition < 0.8) return 'high';
+        return 'very_high';
+    }
+
+    function determineOptimalVideoState(lastFlowRate, analysis) {
+        const {
+            trueAvg,
+            currentAvg,
+            trend,
+            volatility,
+            momentum,
+            deviationFromTrueAvg,
+            deviationFromCurrentAvg,
+            flowRegime
+        } = analysis;
+        
+        // Weighted decision matrix
+        let lowScore = 0;
+        let normalScore = 0;
+        let highScore = 0;
+        
+        // Rule 1: Absolute flow value scoring
+        if (lastFlowRate < 2.0) lowScore += 3;
+        else if (lastFlowRate < 5.0) lowScore += 1;
+        else if (lastFlowRate > trueAvg * 2) highScore += 3;
+        else if (lastFlowRate > trueAvg * 1.5) highScore += 2;
+        
+        // Rule 2: Deviation from averages (most important for low flow detection)
+        if (deviationFromCurrentAvg < -40) lowScore += 4;
+        else if (deviationFromCurrentAvg < -20) lowScore += 2;
+        else if (deviationFromCurrentAvg > 40) highScore += 4;
+        else if (deviationFromCurrentAvg > 20) highScore += 2;
+        
+        // Rule 3: Trend-based scoring
+        if (trend < -0.5) lowScore += 2;
+        else if (trend > 0.5) highScore += 2;
+        
+        // Rule 4: Momentum-based scoring
+        if (momentum < -15) lowScore += 1;
+        else if (momentum > 15) highScore += 1;
+        
+        // Rule 5: Flow regime scoring
+        if (flowRegime === 'very_low') lowScore += 3;
+        else if (flowRegime === 'low') lowScore += 2;
+        else if (flowRegime === 'high') highScore += 2;
+        else if (flowRegime === 'very_high') highScore += 3;
+        else normalScore += 2; // stable or normal regime
+        
+        // Rule 6: Volatility consideration (smooth transitions)
+        if (volatility > trueAvg * 0.3) {
+            // High volatility - prefer normal state to avoid rapid switching
+            normalScore += 1;
+        }
+        
+        // Rule 7: Recent pattern consistency
+        if (Math.abs(deviationFromTrueAvg) < 10 && Math.abs(deviationFromCurrentAvg) < 15) {
+            normalScore += 2; // Consistent with both averages
+        }
+        
+        // Determine winner with hysteresis to prevent rapid switching
+        const scores = { low: lowScore, normal: normalScore, high: highScore };
+        let bestState = 'normal';
+        let bestScore = -Infinity;
+        
+        for (const [state, score] of Object.entries(scores)) {
+            if (score > bestScore) {
+                bestScore = score;
+                bestState = state;
+            }
+        }
+        
+        // Apply hysteresis: require clear winner to change state
+        const scoreDifferences = {
+            low: lowScore - Math.max(normalScore, highScore),
+            normal: normalScore - Math.max(lowScore, highScore),
+            high: highScore - Math.max(lowScore, normalScore)
+        };
+        
+        // Only switch if the best state is clearly better (difference > 1)
+        if (scoreDifferences[bestState] > 1) {
+            return bestState;
+        }
+        
+        // Otherwise maintain current state or default to normal
+        return 'normal';
+    }
+
+    function setVideoState(targetState, activeState, videos, isDemo, lastFlowRate) {
+        const targetVideoElement = videos[targetState];
+        
+        if (activeState.activeVideoElement !== targetVideoElement) {
+            // Smooth transition
+            if (activeState.activeVideoElement) {
+                activeState.activeVideoElement.classList.remove('active');
+                activeState.activeVideoElement.pause();
+            }
+            
+            targetVideoElement.classList.add('active');
+            activeState.activeVideoElement = targetVideoElement;
+            
+            // Log state change for debugging
+            console.log(`Video state changed to: ${targetState}`, {
+                flowRate: lastFlowRate,
+                context: isDemo ? 'demo' : 'live'
+            });
+        }
+        
+        // Determine if video should play
+        const shouldPlay = (isDemo ? state.demo.active : (state.connectionStatus === 'connected' && state.currentDevice)) && lastFlowRate > 0.1;
+        
+        if (shouldPlay) {
+            if (activeState.activeVideoElement && activeState.activeVideoElement.paused) {
+                activeState.activeVideoElement.play().catch(e => {
+                    console.log('Autoplay blocked:', e);
+                });
+            }
+        } else {
+            if (activeState.activeVideoElement && !activeState.activeVideoElement.paused) {
+                activeState.activeVideoElement.pause();
+            }
+        }
+    }
+        
+    // --- Alerts System ---
+    function addAlert(type, title, message) {
+        const lastAlert = state.alerts.length > 0 ? state.alerts[0] : null;
+        if (lastAlert && lastAlert.title === title) return;
+        const newAlert = { type, title, message, timestamp: new Date() };
+        state.alerts.unshift(newAlert);
+        if (state.alerts.length > 50) state.alerts.pop();
+        renderAlerts();
+    }
+
+    function renderAlerts() {
+        elements.dashboardAlertsContainer.innerHTML = state.alerts.slice(0, 3).map(alert => createAlertHTML(alert)).join('');
+        elements.allAlertsContainer.innerHTML = state.alerts.map(alert => createAlertHTML(alert, true)).join('');
+        const unreadCount = state.alerts.filter(a => a.type === 'warning').length;
+        elements.notificationBadge.textContent = unreadCount;
+        elements.notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    function createAlertHTML(alert, showTime = false) {
+        const alertClass = alert.type === 'info' ? 'info' : '';
+        const iconClass = alert.type === 'info' ? 'fa-info-circle' : 'fa-exclamation-triangle';
+        let timeText = '';
+        if (showTime) {
+            const timeSince = Math.round((new Date() - alert.timestamp) / 1000);
+            if (timeSince < 60) timeText = `${timeSince}s ago`;
+            else if (timeSince < 3600) timeText = `${Math.round(timeSince / 60)}m ago`;
+            else timeText = `${Math.round(timeSince / 3600)}h ago`;
+        }
+        return `
+            <div class="alert-item ${alertClass}">
+                <i class="fas ${iconClass} alert-icon"></i>
+                <div class="alert-content">
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-desc">${alert.message}</div>
+                </div>
+                ${showTime ? `<div class="value-number">${timeText}</div>` : ''}
+            </div>`;
+    }
+
+    // --- Uptime/Status Management ---
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function startStatusTimer() {
+        if (state.timers.status) clearInterval(state.timers.status);
+        state.timers.status = setInterval(() => {
+            if (state.connectionStatus === 'connected' && state.lastDataTimestamp) {
+                const secondsSinceLastData = (new Date() - state.lastDataTimestamp) / 1000;
+                if (secondsSinceLastData < 5) {
+                    const lastFlowRate = state.data.flowRates.length > 0 ? state.data.flowRates[state.data.flowRates.length - 1] : 0;
+                    if (lastFlowRate > config.thresholds.noFlow) {
+                        state.timers.uptimeSeconds++;
+                    } else {
+                        state.timers.downtimeSeconds++;
+                    }
+                } else {
+                    state.timers.downtimeSeconds++;
+                }
+            }
+            elements.dashboard.uptimeStat.textContent = formatTime(state.timers.uptimeSeconds);
+            elements.dashboard.downtimeStat.textContent = formatTime(state.timers.downtimeSeconds);
+            
+            if (state.demo.active) {
+                state.demo.uptimeSeconds++;
+                elements.demo.uptimeStat.textContent = formatTime(state.demo.uptimeSeconds);
+                
+                // Change pattern every 20-40 seconds for variety
+                if (state.demo.uptimeSeconds % (20 + Math.floor(Math.random() * 20)) === 0) {
+                    changeDemoPattern();
+                }
+            }
+            renderAlerts();
+        }, 1000);
+    }
+    
+        // --- Enhanced Charts and Core Logic ---
     function initCharts() {
-        const flowRateCtx = document.getElementById('flowRateChart').getContext('2d');
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
+        const baseOptions = { 
+            responsive: true, 
+            maintainAspectRatio: false, 
             plugins: { 
                 legend: { 
-                    labels: { 
-                        color: '#fff',
-                        font: {
-                            size: 12
-                        }
-                    } 
+                    labels: { color: '#fff' } 
                 } 
-            },
+            }, 
             scales: { 
                 y: { 
                     beginAtZero: true, 
-                    ticks: { 
-                        color: '#fff',
-                        font: {
-                            size: 11
-                        }
-                    }, 
-                    title: { 
-                        display: true, 
-                        color: '#fff', 
-                        text: 'Flow Rate (L/min)',
-                        font: {
-                            size: 12
-                        }
-                    }, 
-                    grid: { 
-                        color: 'rgba(255,255,255,0.07)' 
-                    } 
+                    ticks: { color: '#fff' }, 
+                    grid: { color: 'rgba(255,255,255,0.07)' } 
                 }, 
                 x: { 
-                    ticks: { 
-                        color: '#fff',
-                        font: {
-                            size: 11
-                        }
-                    }, 
-                    grid: { 
-                        display: false 
+                    ticks: { color: '#fff' }, 
+                    grid: { display: false } 
+                } 
+            } 
+        };
+        
+        const createChart = (id, label, yText, color) => new Chart(document.getElementById(id).getContext('2d'), { 
+            type: 'line', 
+            data: { 
+                labels: [], 
+                datasets: [{ 
+                    label, 
+                    data: [], 
+                    borderColor: color, 
+                    backgroundColor: color+'20', 
+                    borderWidth: 2, 
+                    tension: 0.3, 
+                    fill: true 
+                }] 
+            }, 
+            options: { 
+                ...baseOptions, 
+                scales: { 
+                    ...baseOptions.scales, 
+                    y: { 
+                        ...baseOptions.scales.y, 
+                        title: { 
+                            display: true, 
+                            color: '#fff', 
+                            text: yText 
+                        } 
+                    } 
+                } 
+            } 
+        });
+        
+        // Main dashboard charts
+        state.charts.flowRate = createChart('flowRateChart', 'Flow Rate', 'L/min', '#00c6ff');
+        state.charts.velocity = createChart('velocityChart', 'Flow Velocity', 'm/s', '#64ffda');
+        state.charts.tof = createChart('tofChart', 'Time of Flight', 'μs', '#0072ff');
+        
+        // Demo charts
+        state.demo.charts.flowRate = createChart('demo-flowRateChart', 'Flow Rate', 'L/min', '#00c6ff');
+        state.demo.charts.velocity = createChart('demo-velocityChart', 'Flow Velocity', 'm/s', '#64ffda');
+        state.demo.charts.tof = createChart('demo-tofChart', 'Time of Flight', 'μs', '#0072ff');
+
+        // Statistics charts for both modes
+        state.charts.stats = new Chart(document.getElementById('statsChart').getContext('2d'), {
+            type: 'bar',
+            data: { 
+                labels: [], 
+                datasets: [{ 
+                    label: 'Deviation from Average', 
+                    data: [], 
+                    backgroundColor: [], 
+                    borderWidth: 1, 
+                    borderColor: '#ccd6f6'
+                }] 
+            },
+            options: { 
+                ...baseOptions, 
+                scales: { 
+                    ...baseOptions.scales, 
+                    y: { 
+                        ...baseOptions.scales.y, 
+                        title: { 
+                            display: true, 
+                            color: '#fff', 
+                            text: 'Deviation (L/min)' 
+                        } 
                     } 
                 } 
             }
-        };
-
-        state.charts.flowRate = new Chart(flowRateCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Flow Rate (L/min)', 
-                    data: [], 
-                    borderColor: '#00c6ff', 
-                    backgroundColor: 'rgba(0, 198, 255, 0.1)', 
-                    borderWidth: 2, 
-                    tension: 0.3, 
-                    fill: true
-                }]
-            },
-            options: chartOptions
         });
     }
 
-    // Setup navigation and UI interactions
     function setupNavigation() {
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', function() {
+                const page = this.getAttribute('data-page');
+                if (page === 'demo' && state.connectionStatus === 'connected') {
+                    if (confirm("Switching to Demo Mode will disconnect you from the live feed. Continue?")) {
+                        if (state.mqttClient) state.mqttClient.end();
+                        updateConnectionStatus('disconnected');
+                    } else { return; }
+                }
                 document.querySelector('.menu-item.active').classList.remove('active');
                 this.classList.add('active');
                 document.querySelector('.page-content.active').classList.remove('active');
-                document.getElementById(this.getAttribute('data-page') + '-page').classList.add('active');
+                document.getElementById(page + '-page').classList.add('active');
             });
         });
         
-        const toggleButton = document.getElementById('sidebarToggle');
-        toggleButton.addEventListener('click', () => {
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
             const container = document.querySelector('.container');
             container.classList.toggle('sidebar-collapsed');
-            toggleButton.querySelector('i').className = container.classList.contains('sidebar-collapsed') ? 'fas fa-bars' : 'fas fa-times';
+            document.getElementById('toggleIcon').className = container.classList.contains('sidebar-collapsed') ? 'fas fa-bars' : 'fas fa-times';
+        });
+        
+        // Main dashboard tabs
+        document.querySelectorAll('.tab-navigation .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                this.closest('.card, .dashboard-grid > div > div').querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.getElementById(this.getAttribute('data-tab') + '-tab').classList.add('active');
+            });
+        });
+        
+        // Demo tabs
+        document.querySelectorAll('.demo-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                this.closest('.card').querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.getElementById(this.getAttribute('data-tab') + '-tab').classList.add('active');
+            });
         });
     }
 
-    // Setup other event listeners
     function setupEventListeners() {
         elements.deviceSelect.addEventListener('change', handleDeviceChange);
         initDateTimePickers();
-        
-        // Add input change listeners for real-time updates
-        elements.sensorAngleInput.addEventListener('change', recalculateFlowData);
-        elements.pipeDiameterInput.addEventListener('change', recalculateFlowData);
+        elements.sensorAngleInput.addEventListener('change', () => recalculateFlowData('dashboard'));
+        elements.pipeDiameterInput.addEventListener('change', () => recalculateFlowData('dashboard'));
     }
-
-    // Recalculate all flow data when parameters change
-    function recalculateFlowData() {
-        if (state.data.timeOfFlights.length > 0) {
-            const lastIndex = state.data.timeOfFlights.length - 1;
-            const tofValue = state.data.timeOfFlights[lastIndex];
-            const timestamp = state.data.timestamps[lastIndex];
-            
-            // Recalculate with new parameters
-            processTOFData(tofValue, timestamp);
-            updateDisplays();
-            updateCharts();
+    
+    function recalculateFlowData(context) {
+        const data = context === 'demo' ? state.demo.data : state.data;
+        if (data.timeOfFlights.length > 0) {
+            const lastIndex = data.timeOfFlights.length - 1;
+            processTOFData(data.timeOfFlights[lastIndex], data.timestamps[lastIndex], false, context);
         }
     }
 
-    // Load saved settings from localStorage
     function loadSavedSettings() {
         elements.sensorAngleInput.value = localStorage.getItem('sensorAngle') || config.defaults.sensorAngle;
         elements.pipeDiameterInput.value = localStorage.getItem('pipeDiameter') || config.defaults.pipeDiameter;
     }
 
     function saveSetting(key, element, btn) {
-        localStorage.setItem(key, element.value);
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-        btn.style.background = 'rgba(46, 204, 113, 0.2)';
-        btn.style.color = 'var(--success)';
-        setTimeout(() => {
-            btn.innerHTML = originalHtml;
-            btn.style.background = 'rgba(100, 255, 218, 0.2)';
-            btn.style.color = 'var(--accent)';
-        }, 2000);
-        
-        // Recalculate with new settings
-        recalculateFlowData();
-    }
-
-    function saveSensorAngle() {
-        saveSetting('sensorAngle', elements.sensorAngleInput, document.querySelectorAll('.set-btn')[0]);
+        const value = element.value;
+        if (value && !isNaN(value)) {
+            localStorage.setItem(key, value);
+            btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+            btn.style.background = 'rgba(46, 204, 113, 0.3)';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Set';
+                btn.style.background = '';
+            }, 2000);
+            recalculateFlowData('dashboard');
+            if (state.demo.active) {
+                recalculateFlowData('demo');
+            }
+        }
     }
     
-    function savePipeDiameter() {
-        saveSetting('pipeDiameter', elements.pipeDiameterInput, document.querySelectorAll('.set-btn')[1]);
-    }
-
-    // Handle device selection change with dynamic topic subscription
     function handleDeviceChange() {
         const newDevice = elements.deviceSelect.value;
         const oldDevice = state.currentDevice;
-
         if (newDevice === oldDevice) return;
-
         if (oldDevice && state.mqttClient && state.mqttClient.connected) {
-            const oldTopic = config.mqtt.topicBase + oldDevice + '/tof_avg';
-            state.mqttClient.unsubscribe(oldTopic, (err) => {
-                if (err) console.error('Failed to unsubscribe from', oldTopic, err);
-                else console.log('Unsubscribed from', oldTopic);
-            });
+            state.mqttClient.unsubscribe(config.mqtt.topicBase + oldDevice + '/tof_avg');
         }
-        
         state.currentDevice = newDevice;
-        resetData(); 
-
+        resetData('dashboard');
         if (newDevice && state.mqttClient && state.mqttClient.connected) {
-            const newTopic = config.mqtt.topicBase + newDevice + '/tof_avg';
-            state.mqttClient.subscribe(newTopic, (err) => {
-                if (err) console.error('Failed to subscribe to', newTopic, err);
-                else console.log('Subscribed to', newTopic);
-            });
-        } else if (newDevice) {
-            // If MQTT not connected but device selected, restart demo mode
-            startDemoMode();
+            state.mqttClient.subscribe(config.mqtt.topicBase + newDevice + '/tof_avg');
         }
     }
 
-    // Reset data arrays when switching devices
-    function resetData() {
-        state.data = {
-            timestamps: [], flowRates: [], timeOfFlights: [], flowVelocities: []
-        };
-        updateDisplays();
-        updateCharts();
+    function resetData(context) {
+        if (context === 'dashboard') {
+            state.data = { timestamps: [], flowRates: [], timeOfFlights: [], flowVelocities: [] };
+            state.stats = { 
+                totalVolume: 0, 
+                avgFlowRate: 0, 
+                maxFlowRate: 0, 
+                successfulPackets: 0, 
+                failedPackets: 0,
+                meanFlow: 0,
+                medianFlow: 0
+            };
+            state.lastVolumeCalcTimestamp = null;
+            state.timers.uptimeSeconds = 0;
+            state.timers.downtimeSeconds = 0;
+        } else { // demo
+            state.demo.data = { 
+                timestamps: [], 
+                flowRates: [], 
+                timeOfFlights: [], 
+                flowVelocities: [],
+                avgFlowRate: 0,
+                maxFlowRate: 0,
+                totalVolume: 0,
+                meanFlow: 0,
+                medianFlow: 0
+            };
+            state.demo.uptimeSeconds = 0;
+            state.demo.currentPattern = 'steady';
+            state.demo.patternStartTime = Date.now();
+            state.demo.lastTOFValue = 0.5;
+            state.demo.stats = {
+                totalVolume: 0,
+                avgFlowRate: 0,
+                maxFlowRate: 0,
+                meanFlow: 0,
+                medianFlow: 0
+            };
+            state.demo.lastVolumeCalcTimestamp = null;
+        }
+        updateDisplays(context);
+        updateCharts(context);
+        updateStats(context);
+        updateVideoState(context);
     }
 
-    // Connect to MQTT broker
     function connectMQTT() {
-        const connectUrl = `wss://${config.mqtt.host}:${config.mqtt.port}/mqtt`;
-        try {
-            const client = mqtt.connect(connectUrl, {
-                clientId: config.mqtt.clientId, 
-                clean: true, 
-                reconnectPeriod: 5000, 
-                connectTimeout: 4000
-            });
+    if (state.demo.active) {
+        addAlert('info', 'Demo Active', 'Cannot connect to live feed while demo is running.');
+        return;
+    }
+    
+    if (state.mqttClient) { 
+        state.mqttClient.end(true); 
+    }
 
-            client.on('connect', () => {
-                console.log('MQTT Connected');
-                state.mqttClient = client;
-                updateConnectionStatus('connected');
-                
-                // Subscribe to current device topic
-                if (state.currentDevice) {
-                    const topic = config.mqtt.topicBase + state.currentDevice + '/tof_avg';
-                    client.subscribe(topic, (err) => {
-                        if (err) {
-                            console.error('Failed to subscribe to', topic, err);
-                        } else {
-                            console.log('Subscribed to', topic);
-                            if (state.demoInterval) {
-                                clearInterval(state.demoInterval);
-                                state.demoInterval = null;
-                            }
-                        }
-                    });
-                }
-            });
+    // Define multiple connection options with priority
+    const connectionOptions = [
+        {
+            name: 'Mosquitto WebSocket (8080)',
+            url: 'ws://test.mosquitto.org:8080/mqtt',
+            type: 'websocket'
+        },
+        {
+            name: 'Mosquitto Secure WebSocket (8081)',
+            url: 'wss://test.mosquitto.org:8081/mqtt', 
+            type: 'secure_websocket'
+        },
+        {
+            name: 'HiveMQ WebSocket',
+            url: 'ws://broker.hivemq.com:8000/mqtt',
+            type: 'websocket'
+        },
+        {
+            name: 'Eclipse Mosquitto',
+            url: 'ws://mqtt.eclipseprojects.io:80/mqtt',
+            type: 'websocket'
+        }
+    ];
 
-            client.on('error', (err) => {
-                console.error('MQTT Connection error:', err);
-                updateConnectionStatus('disconnected');
-            });
-            
-            client.on('close', () => {
-                console.log('MQTT Connection closed');
-                updateConnectionStatus('disconnected');
-            });
-            
-            client.on('reconnect', () => {
-                console.log('MQTT Reconnecting...');
-                updateConnectionStatus('disconnected');
-            });
+    let currentOptionIndex = 0;
+    let connectionTimeout;
 
-            client.on('message', (topic, message) => {
-                try {
-                    const deviceId = topic.split('/')[2];
-                    if (state.currentDevice && deviceId === state.currentDevice) {
-                        const payload = JSON.parse(message.toString());
-                        const tofValue = payload.time_of_flight;
-
-                        if (typeof tofValue === 'number' && !isNaN(tofValue)) {
-                            processTOFData(tofValue, new Date());
-                            updateDisplays();
-                            updateCharts();
-                        } else {
-                            console.error('Invalid TOF value received:', payload);
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error processing MQTT message:', err, 'Payload:', message.toString());
-                }
-            });
-        } catch (error) {
-            console.error('Failed to initialize MQTT:', error);
+    const tryNextConnection = () => {
+        if (currentOptionIndex >= connectionOptions.length) {
+            console.error("All connection attempts failed");
+            addAlert('warning', 'Connection Failed', 'All MQTT brokers are unreachable. Check internet connection.');
             updateConnectionStatus('disconnected');
-            startDemoMode();
-        }
-    }
-
-    // Process TOF data using live values from input boxes
-    function processTOFData(tofValue, timestamp) {
-        const angleRad = (parseFloat(elements.sensorAngleInput.value) || config.defaults.sensorAngle) * Math.PI / 180;
-        const pipeDiameter = parseFloat(elements.pipeDiameterInput.value) || config.defaults.pipeDiameter;
-        
-        // Calculate the path length between sensors
-        const L = pipeDiameter / Math.cos(angleRad);
-        
-        // Calculate the speed of sound in the medium (water)
-        const speedOfSound = config.defaults.speedOfSound;
-        
-        // Calculate time of flight difference due to flow
-        // This formula is based on the ultrasonic flow measurement principle
-        const deltaT = (2 * L * Math.sin(angleRad)) / (speedOfSound * speedOfSound);
-        
-        // Calculate flow velocity
-        //let flowVelocity = (tofValue / 1000000) * (speedOfSound * speedOfSound) / (2 * L * Math.cos(angleRad));
-        if (Math.abs(Math.cos(angleRad)) < 1e-6) {
-            flowVelocity = 0;
-        } else {
-            flowVelocity = (tofValue / 1e6) * (speedOfSound * speedOfSound) / (2 * L * Math.cos(angleRad));
-        }
-
-        // Ensure flow velocity is positive
-        flowVelocity = Math.abs(flowVelocity);
-        
-        // Calculate flow rate (convert m³/s to L/min)
-        const pipeArea = Math.PI * Math.pow(pipeDiameter / 2, 2);
-        let flowRate = flowVelocity * pipeArea * 60000; 
-
-        state.data.timestamps.push(timestamp);
-        state.data.flowRates.push(flowRate);
-        state.data.timeOfFlights.push(tofValue);
-        state.data.flowVelocities.push(flowVelocity);
-
-        if (state.data.timestamps.length > 100) {
-            Object.values(state.data).forEach(arr => arr.shift());
-        }
-    }
-
-    // Update display elements
-    function updateDisplays() {
-        const lastIndex = state.data.flowRates.length - 1;
-        if (lastIndex >= 0) {
-            elements.flowRateDisplay.innerHTML = `${state.data.flowRates[lastIndex].toFixed(1)}<span class="flow-unit">L/min</span>`;
-            elements.timeOfFlightDisplay.innerHTML = `${state.data.timeOfFlights[lastIndex].toFixed(1)}<span class="frequency-unit">μs</span>`;
-            elements.flowVelocityDisplay.innerHTML = `${state.data.flowVelocities[lastIndex].toFixed(3)}<span class="frequency-unit">m/s</span>`;
-        } else {
-             elements.flowRateDisplay.innerHTML = `0.0<span class="flow-unit">L/min</span>`;
-             elements.timeOfFlightDisplay.innerHTML = `0.0<span class="frequency-unit">μs</span>`;
-             elements.flowVelocityDisplay.innerHTML = `0.0<span class="frequency-unit">m/s</span>`;
-        }
-    }
-
-    // Update charts
-    function updateCharts() {
-        const formattedTimestamps = state.data.timestamps.map(ts => ts.toLocaleTimeString());
-        
-        state.charts.flowRate.data.labels = formattedTimestamps;
-        state.charts.flowRate.data.datasets[0].data = state.data.flowRates;
-        state.charts.flowRate.update();
-    }
-
-    // Start demo mode if MQTT fails
-    function startDemoMode() {
-        if (state.demoInterval) clearInterval(state.demoInterval);
-        state.demoInterval = setInterval(() => {
-            if (state.connectionStatus !== 'connected') {
-                const tofValue = 75 + (Math.random() * 20 - 10);
-                processTOFData(tofValue, new Date());
-                updateDisplays();
-                updateCharts();
-            }
-        }, 2000);
-    }
-
-    // Date/Time picker functions
-    function initDateTimePickers() {
-        const commonOptions = {
-            enableTime: false,
-            dateFormat: "Y-m-d",
-        };
-        flatpickr("#report-start-date", { ...commonOptions, defaultDate: new Date().fp_incr(-7) });
-        flatpickr("#report-end-date", { ...commonOptions, defaultDate: "today" });
-    }
-
-    // Report generation functions
-    function downloadReport(type) {
-        const startDate = document.getElementById('report-start-date').value;
-        const startTime = document.getElementById('report-start-time').value;
-        const endDate = document.getElementById('report-end-date').value;
-        const endTime = document.getElementById('report-end-time').value;
-
-        if (!startDate || !endDate) {
-            alert('Please select both start and end dates');
             return;
         }
 
-        let headers, rows;
-        if (type === 'flowRate') headers = ['Timestamp', 'Flow Rate (L/min)'];
-        else headers = ['Timestamp', 'Flow Rate (L/min)', 'Time of Flight (μs)', 'Flow Velocity (m/s)'];
-        rows = [headers];
+        const option = connectionOptions[currentOptionIndex];
+        console.log(`Attempting connection to: ${option.name}`);
+        addAlert('info', 'Connecting', `Trying ${option.name}...`);
 
-        const start = new Date(`${startDate}T${startTime}`);
-        const end = new Date(`${endDate}T${endTime}`);
-        for (let d = new Date(start); d <= end; d.setMinutes(d.getMinutes() + 5)) {
-            const tofValue = (Math.random() * 100 + 50).toFixed(2);
-            const flowRate = (Math.random() * 50 + 10).toFixed(2);
-            const flowVelocity = (Math.random() * 2 + 0.5).toFixed(3);
-            const row = [d.toISOString()];
-            if (type === 'flowRate') row.push(flowRate);
-            else row.push(flowRate, tofValue, flowVelocity);
-            rows.push(row);
+        // Clear any existing timeout
+        if (connectionTimeout) clearTimeout(connectionTimeout);
+
+        // Set connection timeout (8 seconds)
+        connectionTimeout = setTimeout(() => {
+            console.warn(`Connection timeout for: ${option.name}`);
+            currentOptionIndex++;
+            tryNextConnection();
+        }, 8000);
+
+        try {
+            const client = mqtt.connect(option.url, { 
+                clientId: config.mqtt.clientId, 
+                clean: true, 
+                reconnectPeriod: 0, // Disable auto-reconnect during initial connection
+                connectTimeout: 5000 
+            });
+            
+            client.on('connect', () => { 
+                console.log(`✅ Successfully connected to: ${option.name}`);
+                clearTimeout(connectionTimeout);
+                state.mqttClient = client;
+                updateConnectionStatus('connected');
+                
+                // Re-enable auto-reconnect now that we're connected
+                client.options.reconnectPeriod = 5000;
+                
+                if (state.currentDevice) {
+                    client.subscribe(config.mqtt.topicBase + state.currentDevice + '/tof_avg');
+                    console.log(`Subscribed to: ${config.mqtt.topicBase + state.currentDevice + '/tof_avg'}`);
+                }
+                
+                addAlert('success', 'Connected', `Live data connected via ${option.name}`);
+            });
+            
+            client.on('error', (error) => {
+                console.error(`❌ Connection error for ${option.name}:`, error);
+                clearTimeout(connectionTimeout);
+                client.end(true);
+                
+                // Try next option after a short delay
+                setTimeout(() => {
+                    currentOptionIndex++;
+                    tryNextConnection();
+                }, 1000);
+            });
+            
+            client.on('close', () => {
+                console.log(`Connection closed for: ${option.name}`);
+                if (state.connectionStatus === 'connected') {
+                    updateConnectionStatus('disconnected');
+                    addAlert('warning', 'Disconnected', 'MQTT connection lost. Attempting to reconnect...');
+                    
+                    // Try to reconnect with the same broker first
+                    setTimeout(() => {
+                        if (!state.demo.active) {
+                            connectMQTT();
+                        }
+                    }, 3000);
+                }
+            });
+            
+            client.on('message', (topic, message) => {
+                try {
+                    if (topic.split('/')[2] === state.currentDevice) {
+                        const payload = JSON.parse(message.toString());
+                        if (typeof payload.time_of_flight === 'number') {
+                            processTOFData(payload.time_of_flight, new Date(), true, 'dashboard');
+                            state.stats.successfulPackets++;
+                        } else { 
+                            state.stats.failedPackets++; 
+                        }
+                    }
+                } catch (err) { 
+                    state.stats.failedPackets++; 
+                }
+            });
+            
+        } catch (error) {
+            console.error(`Exception connecting to ${option.name}:`, error);
+            clearTimeout(connectionTimeout);
+            currentOptionIndex++;
+            setTimeout(tryNextConnection, 1000);
+        }
+    };
+
+    // Start the connection attempt chain
+    updateConnectionStatus('connecting');
+    tryNextConnection();
+}
+
+// Update your connection status function to handle 'connecting' state
+function updateConnectionStatus(status) {
+    state.connectionStatus = status;
+    elements.connectionStatus.className = 'status-dot';
+    
+    switch(status) {
+        case 'connected':
+            elements.connectionStatus.classList.add('status-connected');
+            elements.connectionText.textContent = 'Connected';
+            elements.dashboard.deviceStatus.textContent = 'Active';
+            break;
+        case 'connecting':
+            elements.connectionStatus.classList.add('status-disconnected');
+            elements.connectionText.textContent = 'Connecting...';
+            elements.dashboard.deviceStatus.textContent = 'Connecting';
+            break;
+        case 'disconnected':
+            elements.connectionStatus.classList.add('status-disconnected');
+            elements.connectionText.textContent = 'Disconnected';
+            elements.dashboard.deviceStatus.textContent = 'Offline';
+            break;
+    }
+    updateVideoState('dashboard');
+}
+
+    function processTOFData(tofValue, timestamp, isNewData, context) {
+        const isDemo = context === 'demo';
+        const angleRad = (parseFloat(elements.sensorAngleInput.value) || config.defaults.sensorAngle) * Math.PI / 180;
+        const pipeDiameter = parseFloat(elements.pipeDiameterInput.value) || config.defaults.pipeDiameter;
+        const L = pipeDiameter / Math.cos(angleRad);
+        
+        let flowVelocity = (tofValue / 1e6) * (config.defaults.speedOfSound ** 2) / (2 * L * Math.cos(angleRad));
+        flowVelocity = isNaN(flowVelocity) ? 0 : Math.abs(flowVelocity);
+        
+        const pipeArea = Math.PI * (pipeDiameter / 2) ** 2;
+        let flowRate = flowVelocity * pipeArea * 60000;
+        flowRate = isNaN(flowRate) ? 0 : flowRate;
+
+        // Add alerts for high flow rates in both modes
+        if (flowRate > config.thresholds.highFlow) {
+            addAlert('warning', 'High Flow Rate', `Rate of ${flowRate.toFixed(1)} L/min exceeds threshold.`);
         }
 
+        const data = isDemo ? state.demo.data : state.data;
+        if (isNewData) {
+            data.timestamps.push(timestamp);
+            data.flowRates.push(flowRate);
+            data.timeOfFlights.push(tofValue);
+            data.flowVelocities.push(flowVelocity);
+        } else {
+            const lastIndex = data.flowRates.length - 1;
+            if (lastIndex >= 0) {
+                data.flowRates[lastIndex] = flowRate;
+                data.flowVelocities[lastIndex] = flowVelocity;
+            }
+        }
+        
+        // Keep only last 50 data points for performance
+        if (data.timestamps.length > 50) {
+            data.timestamps.shift();
+            data.flowRates.shift();
+            data.timeOfFlights.shift();
+            data.flowVelocities.shift();
+        }
+        
+        updateStats(context, timestamp, flowRate);
+        updateDisplays(context);
+        updateCharts(context);
+        updateVideoState(context);
+
+        if (!isDemo) {
+            state.lastDataTimestamp = timestamp;
+            const totalPackets = state.stats.successfulPackets + state.stats.failedPackets;
+            const errorRate = totalPackets > 0 ? (state.stats.failedPackets / totalPackets) * 100 : 0;
+            elements.dashboard.errorRateStat.textContent = errorRate.toFixed(1) + '%';
+        }
+    }
+
+    // In the updateStats function, replace this section:
+    function updateStats(context, timestamp, currentFlowRate) {
+        const isDemo = context === 'demo';
+        const data = isDemo ? state.demo.data : state.data;
+        const stats = isDemo ? state.demo.stats : state.stats;
+        
+        if (data.flowRates.length > 0) {
+            const sum = data.flowRates.reduce((a, b) => a + b, 0);
+            const avg = sum / data.flowRates.length;
+            const maxFlow = Math.max(...data.flowRates);
+
+            stats.avgFlowRate = avg;
+            stats.maxFlowRate = Math.max(maxFlow, stats.maxFlowRate || 0);
+            
+            // Calculate mean and median
+            const sortedFlows = [...data.flowRates].sort((a, b) => a - b);
+            const mid = Math.floor(sortedFlows.length / 2);
+            stats.meanFlow = avg;
+            stats.medianFlow = sortedFlows.length % 2 !== 0 ? sortedFlows[mid] : (sortedFlows[mid - 1] + sortedFlows[mid]) / 2;
+
+            // Calculate total volume (integration over time)
+            if (isDemo) {
+                if (state.demo.lastVolumeCalcTimestamp) {
+                    const timeDeltaMinutes = (timestamp - state.demo.lastVolumeCalcTimestamp) / 60000;
+                    stats.totalVolume += currentFlowRate * timeDeltaMinutes;
+                }
+                state.demo.lastVolumeCalcTimestamp = timestamp;
+                
+                // Update DEMO-specific display elements
+                document.getElementById('demo-avg-flow-rate').textContent = stats.avgFlowRate.toFixed(1);
+                document.getElementById('demo-max-flow-rate').textContent = stats.maxFlowRate.toFixed(1);
+                document.getElementById('demo-total-volume').textContent = stats.totalVolume.toFixed(1);
+                document.getElementById('demo-mean-flow-stat').textContent = stats.meanFlow.toFixed(1);
+                document.getElementById('demo-median-flow-stat').textContent = stats.medianFlow.toFixed(1);
+                
+            } else {
+                if (state.lastVolumeCalcTimestamp) {
+                    const timeDeltaMinutes = (timestamp - state.lastVolumeCalcTimestamp) / 60000;
+                    stats.totalVolume += currentFlowRate * timeDeltaMinutes;
+                }
+                state.lastVolumeCalcTimestamp = timestamp;
+                
+                // Update LIVE dashboard display elements
+                elements.dashboard.avgFlowRate.textContent = stats.avgFlowRate.toFixed(1);
+                elements.dashboard.maxFlowRate.textContent = stats.maxFlowRate.toFixed(1);
+                elements.dashboard.totalVolume.textContent = stats.totalVolume.toFixed(1);
+                elements.dashboard.meanFlowStat.textContent = stats.meanFlow.toFixed(1);
+                elements.dashboard.medianFlowStat.textContent = stats.medianFlow.toFixed(1);
+            }
+        } else {
+            // Reset stats when no data
+            const resetValue = '0.0';
+            if (isDemo) {
+                document.getElementById('demo-avg-flow-rate').textContent = resetValue;
+                document.getElementById('demo-max-flow-rate').textContent = resetValue;
+                document.getElementById('demo-total-volume').textContent = resetValue;
+                document.getElementById('demo-mean-flow-stat').textContent = resetValue;
+                document.getElementById('demo-median-flow-stat').textContent = resetValue;
+            } else {
+                elements.dashboard.avgFlowRate.textContent = resetValue;
+                elements.dashboard.maxFlowRate.textContent = resetValue;
+                elements.dashboard.totalVolume.textContent = resetValue;
+                elements.dashboard.meanFlowStat.textContent = resetValue;
+                elements.dashboard.medianFlowStat.textContent = resetValue;
+            }
+        }
+    }
+
+    function updateDisplays(context) {
+        const isDemo = context === 'demo';
+        const data = isDemo ? state.demo.data : state.data;
+        const el = isDemo ? elements.demo : elements.dashboard;
+        const lastIndex = data.flowRates.length - 1;
+        
+        if (lastIndex >= 0) {
+            el.flowRateValue.textContent = data.flowRates[lastIndex].toFixed(1);
+            el.timeOfFlightDisplay.innerHTML = `${data.timeOfFlights[lastIndex].toFixed(3)}<span class="frequency-unit">μs</span>`;
+            el.flowVelocityDisplay.innerHTML = `${data.flowVelocities[lastIndex].toFixed(3)}<span class="frequency-unit">m/s</span>`;
+            el.dataPoints.textContent = data.timestamps.length;
+            if(!isDemo) {
+                el.lastUpdate.textContent = new Date().toLocaleTimeString();
+            }
+        } else {
+            el.flowRateValue.textContent = `0.0`;
+            el.timeOfFlightDisplay.innerHTML = `0.0<span class="frequency-unit">μs</span>`;
+            el.flowVelocityDisplay.innerHTML = `0.0<span class="frequency-unit">m/s</span>`;
+            el.dataPoints.textContent = 0;
+            if(!isDemo) el.lastUpdate.textContent = 'Never';
+        }
+    }
+
+    function updateCharts(context) {
+        const isDemo = context === 'demo';
+        const data = isDemo ? state.demo.data : state.data;
+        const charts = isDemo ? state.demo.charts : state.charts;
+        const formattedTimestamps = data.timestamps.map(ts => ts.toLocaleTimeString());
+        
+        // Update flow rate chart
+        if (charts.flowRate) {
+            charts.flowRate.data.labels = formattedTimestamps;
+            charts.flowRate.data.datasets[0].data = data.flowRates;
+            charts.flowRate.update('none');
+        }
+        
+        // Update velocity chart
+        if (charts.velocity) {
+            charts.velocity.data.labels = formattedTimestamps;
+            charts.velocity.data.datasets[0].data = data.flowVelocities;
+            charts.velocity.update('none');
+        }
+        
+        // Update TOF chart
+        if (charts.tof) {
+            charts.tof.data.labels = formattedTimestamps;
+            charts.tof.data.datasets[0].data = data.timeOfFlights;
+            charts.tof.update('none');
+        }
+
+        // Update statistics chart for main dashboard
+        if (!isDemo && data.flowRates.length > 1 && charts.stats) {
+            const avg = state.stats.avgFlowRate;
+            const deviations = data.flowRates.map(d => d - avg);
+            const colors = data.flowRates.map(d => d > avg ? 'rgba(100, 255, 218, 0.7)' : 'rgba(255, 94, 87, 0.7)');
+            
+            charts.stats.data.labels = formattedTimestamps;
+            charts.stats.data.datasets[0].data = deviations;
+            charts.stats.data.datasets[0].backgroundColor = colors;
+            charts.stats.update('none');
+        }
+    }
+
+    // Enhanced Demo Mode with full functionality
+    
+    function toggleDemoMode(start) {
+        if (start) {
+            if (state.demo.active) return;
+            if (state.connectionStatus === 'connected') {
+                if (!confirm("Starting the demo will disconnect you from the live feed. Are you sure?")) return;
+                if (state.mqttClient) state.mqttClient.end();
+                updateConnectionStatus('disconnected');
+            }
+            
+            state.demo.active = true;
+            resetData('demo'); // This will only reset demo data, not live data
+            state.demo.patternStartTime = Date.now();
+            
+            // Update demo status displays
+            elements.demo.deviceStatus.textContent = 'Active';
+            elements.demo.currentPattern.textContent = state.demo.currentPattern;
+            
+            // Update button state
+            document.getElementById('demo-start-icon').className = 'fas fa-pause-circle action-icon';
+            document.getElementById('demo-start-label').textContent = 'Pause Demo';
+            
+            // Start demo simulation
+            state.demo.interval = setInterval(() => {
+                const tofValue = generateDemoTOF();
+                processTOFData(tofValue, new Date(), true, 'demo');
+                elements.demo.lastUpdate.textContent = new Date().toLocaleTimeString();
+            }, config.demo.updateInterval);
+            
+            addAlert('info', 'Demo Started', 'Now displaying realistic simulated data with 1μs TOF limit.');
+            
+        } else {
+            if (!state.demo.active) return;
+            state.demo.active = false;
+            clearInterval(state.demo.interval);
+            state.demo.interval = null;
+            
+            // Reset demo status displays
+            elements.demo.deviceStatus.textContent = 'Inactive';
+            elements.demo.lastUpdate.textContent = 'Never';
+            
+            // Update button state
+            document.getElementById('demo-start-icon').className = 'fas fa-play-circle action-icon';
+            document.getElementById('demo-start-label').textContent = 'Start Demo';
+            
+            addAlert('info', 'Demo Stopped', 'Simulation has ended. Live data remains unaffected.');
+        }
+    }
+
+    function initDateTimePickers() {
+        flatpickr("#report-start-date", { enableTime: false, dateFormat: "Y-m-d", defaultDate: new Date().fp_incr(-7) });
+        flatpickr("#report-end-date", { enableTime: false, dateFormat: "Y-m-d", defaultDate: "today" });
+    }
+
+    function downloadReport(type) {
+        const start = `${document.getElementById('report-start-date').value}T${document.getElementById('report-start-time').value}`;
+        const end = `${document.getElementById('report-end-date').value}T${document.getElementById('report-end-time').value}`;
+        if (!start || !end) { alert('Please select both start and end dates'); return; }
+
+        let headers = type === 'flowRate' ? ['Timestamp', 'Flow Rate (L/min)'] : ['Timestamp', 'Flow Rate (L/min)', 'Time of Flight (μs)', 'Flow Velocity (m/s)'];
+        let rows = [headers];
+        for (let d = new Date(start); d <= new Date(end); d.setMinutes(d.getMinutes() + 5)) {
+            const row = [d.toISOString(), (Math.random() * 50 + 10).toFixed(2)];
+            if (type !== 'flowRate') row.push((Math.random() * 1 + 0.1).toFixed(3), (Math.random() * 2 + 0.5).toFixed(3));
+            rows.push(row);
+        }
         const csvContent = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${type}_report_${startDate}_to_${endDate}.csv`;
-        link.style.visibility = 'hidden';
+        link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+        link.download = `${type}_report_${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
 
-    // Public API
     return {
         init: init,
-        saveSensorAngle: saveSensorAngle,
-        savePipeDiameter: savePipeDiameter,
+        saveSensorAngle: () => saveSetting('sensorAngle', elements.sensorAngleInput, document.querySelectorAll('.set-btn')[0]),
+        savePipeDiameter: () => saveSetting('pipeDiameter', elements.pipeDiameterInput, document.querySelectorAll('.set-btn')[1]),
         downloadFlowRateReport: () => downloadReport('flowRate'),
-        downloadCombinedReport: () => downloadReport('combined')
+        downloadCombinedReport: () => downloadReport('combined'),
+        toggleDemoMode: toggleDemoMode,
+        connectMQTT: connectMQTT
     };
 })();
 
@@ -1236,5 +3495,3 @@ document.addEventListener('DOMContentLoaded', FlowSense.init);
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>
-
-
